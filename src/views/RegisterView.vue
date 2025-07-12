@@ -1,141 +1,147 @@
 <template>
   <div class="main-container">
     <div class="header">
-      <div class="pro-name">智慧通</div>
+      <div class="pro-name">智慧通 - 注册</div>
     </div>
 
     <div class="register-box">
-      <el-card class="register-container">
-        <div class="title">
-          <h2>账号注册</h2>
-        </div>
-        
-        <div class="identity-selector">
-          <div 
-            v-for="option in identityOptions"
-            :key="option.value"
-            :class="['identity-option', { active: selectedIdentity === option.value }]"
-            @click="selectIdentity(option.value)"
-          >
-            <el-icon>
-              <component :is="option.elIcon" />
-            </el-icon>
-            <span>{{ option.label }}</span>
-          </div>
-        </div>
-
-        <el-form 
-          ref="registerForm"
-          :model="formData"
-          :rules="rules"
-          label-position="top"
-          class="register-form"
-        >
-          <el-row :gutter="30">
-            <!-- 左侧：主要注册信息 -->
-            <el-col :span="12" class="left-column">
-              <div class="section-title">账号信息</div>
-              
-              <el-form-item prop="phone" label="手机号码">
-                <el-input 
-                  v-model="formData.phone" 
-                  placeholder="请输入手机号码" 
-                  prefix-icon="Iphone"
-                />
-              </el-form-item>
-              
-              <el-form-item prop="email" label="邮箱">
-                <el-input 
-                  v-model="formData.email" 
-                  placeholder="请输入邮箱" 
-                  prefix-icon="Message"
-                />
-              </el-form-item>
-              
-              <el-form-item prop="password" label="密码">
-                <el-input 
-                  v-model="formData.password" 
-                  type="password" 
-                  placeholder="请输入密码"
-                  prefix-icon="Lock"
-                  show-password
-                />
-              </el-form-item>
-              
-              <el-form-item prop="confirmPassword" label="确认密码">
-                <el-input 
-                  v-model="formData.confirmPassword" 
-                  type="password" 
-                  placeholder="确认密码"
-                  prefix-icon="Key"
-                  show-password
-                />
-              </el-form-item>
-            </el-col>
+      <el-form 
+        ref="registerForm"
+        :model="formData"
+        :rules="rules"
+        label-position="top"
+        class="register-form"
+      >
+        <div class="card-container">
+          <!-- 左侧卡片：主要注册信息 -->
+          <el-card class="info-card left-card">
+            <div class="card-header">
+              <el-icon><Lock /></el-icon>
+              <span>账号信息</span>
+            </div>
             
-            <!-- 右侧：学生个人信息 -->
-            <el-col :span="12" class="right-column">
-              <div class="section-title">个人信息</div>
-              
-              <el-form-item prop="school" label="学校">
-                <el-select
-                  v-model="formData.school"
-                  filterable
-                  placeholder="请选择学校"
-                  class="full-width"
-                >
-                  <el-option
-                    v-for="item in schoolOptions"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              
-              <el-form-item prop="major" label="专业">
-                <el-select
-                  v-model="formData.major"
-                  filterable
-                  placeholder="请选择专业"
-                  class="full-width"
-                >
-                  <el-option
-                    v-for="item in majorOptions"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  />
-                </el-select>
-              </el-form-item>
-              
-              <el-form-item prop="studentNumber" label="学号">
-                <el-input 
-                  v-model="formData.studentNumber" 
-                  placeholder="请输入学号"
-                  prefix-icon="DocumentCopy"
-                />
-              </el-form-item>
-              
-              <el-form-item prop="className" label="班级">
-                <el-input 
-                  v-model="formData.className" 
-                  placeholder="请输入班级"
-                  prefix-icon="School"
-                />
-              </el-form-item>
-            </el-col>
-          </el-row>
+            <el-form-item prop="phone" label="手机号码">
+              <el-input 
+                v-model="formData.phone" 
+                placeholder="请输入手机号码" 
+                prefix-icon="Iphone"
+              />
+            </el-form-item>
+            
+            <el-form-item prop="email" label="邮箱">
+              <el-input 
+                v-model="formData.email" 
+                placeholder="请输入邮箱" 
+                prefix-icon="Message"
+              />
+            </el-form-item>
+            
+            <el-form-item prop="password" label="密码">
+              <el-input 
+                v-model="formData.password" 
+                type="password" 
+                placeholder="请输入密码"
+                prefix-icon="Lock"
+                show-password
+              />
+            </el-form-item>
+            
+            <el-form-item prop="confirmPassword" label="确认密码">
+              <el-input 
+                v-model="formData.confirmPassword" 
+                type="password" 
+                placeholder="确认密码"
+                prefix-icon="Key"
+                show-password
+              />
+            </el-form-item>
+            
+            <!-- 注册按钮移动到左侧卡片底部 -->
+            <div class="action-area">
+              <el-button type="primary" class="register-button" @click="handleRegister">注 册</el-button>
+              <div class="login-link">
+                已有账号？<el-link type="primary" @click="goToLogin">返回登录</el-link>
+              </div>
+            </div>
+          </el-card>
           
-          <el-form-item>
-            <el-button type="primary" class="register-button" @click="handleRegister">注 册</el-button>
-          </el-form-item>
-          
-          <div class="login-link">
-            已有账号？<el-link type="primary" @click="goToLogin">返回登录</el-link>
-          </div>
-        </el-form>
-      </el-card>
+          <!-- 右侧卡片：学生个人信息 -->
+          <el-card class="info-card right-card">
+            <div class="card-header">
+              <el-icon><User /></el-icon>
+              <span>个人信息</span>
+            </div>
+            
+            <!-- 身份选择器移到此处 -->
+            <div class="identity-selector-container">
+              <div class="identity-label">选择身份</div>
+              <div class="identity-selector">
+                <div 
+                  v-for="option in identityOptions"
+                  :key="option.value"
+                  :class="['identity-option', { active: selectedIdentity === option.value }]"
+                  @click="selectIdentity(option.value)"
+                >
+                  <el-icon size="24">
+                    <avatar v-if="option.value === 'student'" />
+                    <reading v-if="option.value === 'teacher'" />
+                    <magic-stick v-if="option.value === 'admin'" />
+                  </el-icon>
+                  <span>{{ option.label }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <el-form-item prop="school" label="学校">
+              <el-select
+                v-model="formData.school"
+                filterable
+                placeholder="请选择学校"
+                class="full-width"
+              >
+                <el-option
+                  v-for="item in schoolOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+            
+            <el-form-item prop="major" label="专业">
+              <el-select
+                v-model="formData.major"
+                filterable
+                placeholder="请选择专业"
+                class="full-width"
+              >
+                <el-option
+                  v-for="item in majorOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+            
+            <el-form-item prop="studentNumber" label="学号">
+              <el-input 
+                v-model="formData.studentNumber" 
+                placeholder="请输入学号"
+                prefix-icon="DocumentCopy"
+              />
+            </el-form-item>
+            
+            <el-form-item prop="className" label="班级">
+              <el-input 
+                v-model="formData.className" 
+                placeholder="请输入班级"
+                prefix-icon="School"
+              />
+            </el-form-item>
+          </el-card>
+        </div>
+      </el-form>
     </div>
   </div>
 </template>
@@ -153,7 +159,8 @@ import {
   School, 
   Avatar, 
   Reading, 
-  MagicStick 
+  MagicStick,
+  User
 } from '@element-plus/icons-vue';
 import { ElMessageBox } from 'element-plus';
 
@@ -242,13 +249,7 @@ const identityOptions = [
     value: "teacher",
     icon: "M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z",
     elIcon: "Reading"
-  },
-  {
-    label: "管理员",
-    value: "admin",
-    icon: "M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z",
-    elIcon: "MagicStick"
-  },
+  }
 ];
 
 // 学校选项
@@ -346,7 +347,7 @@ const goToLogin = () => {
 .register-box {
   width: 100%;
   max-width: 900px;
-  margin: 2rem auto;
+  margin: 0 auto;
   padding: 0 1rem;
 }
 
@@ -378,13 +379,23 @@ const goToLogin = () => {
   border-bottom: 1px solid #ebeef5;
 }
 
+.identity-selector-container {
+  margin-bottom: 1.5rem;
+}
+
+.identity-label {
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
 .identity-selector {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   background-color: #f5f7fa;
   border-radius: 6px;
   padding: 0.5rem;
-  margin-bottom: 1.5rem;
   border: 1px solid #e4e7ed;
 }
 
@@ -392,12 +403,12 @@ const goToLogin = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.8rem 1.5rem;
-  margin: 0 0.5rem;
+  padding: 0.8rem;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
   color: #606266;
+  flex: 1;
 }
 
 .identity-option.active {
@@ -443,6 +454,13 @@ const goToLogin = () => {
   border-radius: 4px;
 }
 
+/* 操作区样式 */
+.action-area {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed #e4e7ed;
+}
+
 .register-button {
   width: 100%;
   padding: 10px;
@@ -450,7 +468,6 @@ const goToLogin = () => {
   font-weight: 500;
   letter-spacing: 2px;
   border-radius: 4px;
-  margin-top: 10px;
   background-color: #409eff;
   border: none;
   transition: all 0.2s;
@@ -462,9 +479,43 @@ const goToLogin = () => {
 
 .login-link {
   text-align: center;
-  margin-top: 1.2rem;
+  margin-top: 1rem;
   font-size: 14px;
   color: #606266;
+}
+
+.card-container {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 1.5rem;
+}
+
+.info-card {
+  flex: 1;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 左侧卡片样式 */
+.left-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #409eff;
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.card-header .el-icon {
+  font-size: 18px;
+  margin-right: 8px;
 }
 
 @media (max-width: 768px) {
@@ -474,7 +525,7 @@ const goToLogin = () => {
   }
   
   .identity-option {
-    padding: 0.6rem 1rem;
+    padding: 0.6rem 0.5rem;
   }
   
   .left-column {
@@ -486,6 +537,15 @@ const goToLogin = () => {
   
   .left-column, .right-column {
     padding: 0;
+  }
+
+  .card-container {
+    flex-direction: column;
+  }
+  
+  .action-area {
+    margin-top: 1rem;
+    padding-top: 1rem;
   }
 }
 </style>

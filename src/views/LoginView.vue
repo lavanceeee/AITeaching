@@ -436,7 +436,6 @@ const goToRegister = () => {
 
 .identity-option {
   height: 80px;
-  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;

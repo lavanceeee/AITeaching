@@ -7,12 +7,56 @@ import router from '../router';
 // 创建 axios 实例
 const apiClient = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  timeout: 5000,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
+// 请求拦截器：添加token到请求头
+apiClient.interceptors.request.use(
+  config => {
+    // 获取token
+    const token = localStorage.getItem('token');
+    
+    // 判断是否是登录或注册请求
+    const isAuthPath = config.url && (
+      config.url.includes('/login') || 
+      config.url.includes('/register')
+    );
+    
+    // 如果有token且不是登录注册请求，则添加到请求头
+    if (token && !isAuthPath) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    return config;
+  },
+  error => {
+    return Promise.reject(error);
+  }
+);
+
+// 响应拦截器：处理token过期
+apiClient.interceptors.response.use(
+  response => {
+    return response;
+  },
+  error => {
+    if (error.response) {
+      // token过期或无效
+      if (error.response.status === 401) {
+        ElMessage.error('登录已过期，请重新登录');
+        localStorage.removeItem('token');
+        localStorage.removeItem('identity');
+        router.push('/login');
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+//参数
 //登录参数
 interface LoginParams {
     identity: string; //身份标识
