@@ -26,12 +26,12 @@
           </div>
         </div>
         <div class="profile-actions">
-          <el-button :icon="Edit" circle plain title="编辑" />
+          <el-button :icon="Edit" circle plain title="编辑" @click="showUpdateInfoDialog" />
           <el-button :icon="Delete" circle plain title="删除" />
           <el-button @click="handleLogout" plain>退出登录</el-button>
         </div>
       </div>
-      <div class="settings-list-item">
+      <div class="settings-list-item" @click="showUpdateInfoDialog">
         <div class="item-content">
           <el-icon><User /></el-icon>
           <span>管理我的智慧通账号</span>
@@ -99,6 +99,9 @@
   <div v-else class="loading-state">
     <p>正在加载用户信息...</p>
   </div>
+  
+  <!-- Update Info Dialog -->
+  <UpdateInfo v-model:visible="isUpdateInfoVisible" />
 </template>
 
 <script setup>
@@ -109,10 +112,18 @@ import {
   Delete, Operation, Brush, Download, Plus, Edit, User, TopRight, ArrowRight, Memo,
   Refresh, Lock, Folder
 } from '@element-plus/icons-vue';
+import UpdateInfo from '../../../components/studentCom/UpdateInfo.vue';
+import router from '../../../router';
 
 const store = useStudentInfoStore();
 store.setTestInfo();
 const userInfo = computed(() => store.userInfo);
+
+const isUpdateInfoVisible = ref(false);
+
+const showUpdateInfoDialog = () => {
+  isUpdateInfoVisible.value = true;
+};
 
 const isDetailsVisible = ref(false);
 
@@ -132,11 +143,10 @@ const formatDate = (dateString) => {
 };
 
 const handleLogout = () => {
-  // 在这里添加登出逻辑
-  ElMessage.info('Sign out button clicked.');
-  // 例如：
-  // localStorage.removeItem('token');
-  // router.push('/login');
+  ElMessage.success('退出登录成功');
+  localStorage.removeItem('token');
+  localStorage.removeItem('identity');
+  router.push('/login');
 };
 </script>
 
