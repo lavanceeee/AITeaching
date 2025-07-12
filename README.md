@@ -2,4 +2,4 @@
 
 ## 环境配置文件
 
-在/api/config.ts文件下修改后端接口
+在`/api/config.ts`文件下修改后端接口
