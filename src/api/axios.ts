@@ -2,7 +2,7 @@ import axios from 'axios';
 import { BASE_URL } from './config'
 import { ElMessage } from 'element-plus';
 import router from '../router';
-
+import { useStudentInfoStore } from '../store/studentInfoStore';
 
 // 创建 axios 实例
 const apiClient = axios.create({
@@ -116,6 +116,32 @@ export const register_method = async (params: RegisterParams)=>{
         }
     }catch(error){
         ElMessage.error(`注册失败，${error}`);
+        throw error;
+    }
+}
+
+//获取学生的信息: 使用学号
+export const getStudentInfo_method = async ()=> {
+    try{
+        const identity = localStorage.getItem('identity')
+        const studentNumber = localStorage.getItem('studentNumber')
+        const response = await apiClient.post(`api/${identity}/getStudentInfoByStudentNumber/${studentNumber}`)
+
+        if (response.data.code == 200){
+            //拿到了用户的所有的信息，保存在pinia
+            const userInfo = response.data.data
+            const store = useStudentInfoStore();
+            store.saveStudentInfo(userInfo)
+        }
+        else{
+            const store = useStudentInfoStore();
+            store.clearStudentInfo();
+        }
+
+    } catch (error) {
+        const store = useStudentInfoStore();
+        store.clearStudentInfo();
+        ElMessage.error(`获取学生信息失败，${error}`);
         throw error;
     }
 }

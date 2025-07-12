@@ -19,9 +19,8 @@
                         <img src="../assets/icons/mainPageStu/StudentAvatar.svg" alt="Avatar" />
                     </div>
                     <div class="user-info" v-show="!isCollapsed">
-                        <div class="user-name">张同学</div>
-                        <div class="user-role">学生</div>
-                        <div class="user-id">学号：1234567890</div>
+                        <div class="user-id">学号：{{ studentNumber }}</div>
+                        <div class="user-major">专业：{{ major }}</div>
                     </div>
                 </div>
                 
@@ -85,8 +84,23 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
+import { useStudentInfoStore } from '../store/studentInfoStore';
 
+//studentNumber
+const studentNumber = ref('')
+const major = ref('')
+
+//加载钩子发送信息请求
+onMounted(()=>{
+    const store = useStudentInfoStore();
+    if (store.userInfo){
+        studentNumber.value = store.userInfo.studentNumber;
+        major.value = store.userInfo.major;
+    }
+})
+
+//折叠状态
 const isCollapsed = ref(true);
 
 const toggleSidebar = () => {
@@ -203,12 +217,7 @@ const toggleSidebar = () => {
     object-fit: cover;
 }
 
-.user-name {
-    font-weight: 500;
-    font-size: 0.95rem;
-}
-
-.user-role, .user-id {
+.user-id, .user-major {
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.7);
     margin-top: 2px;
