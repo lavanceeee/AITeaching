@@ -33,6 +33,7 @@ export const useStudentInfoStore = defineStore('studentInfo', {
         clearStudentInfo() {
             this.userInfo = null;
         },
+        //测试使用学生信息
         setTestInfo() {
             this.userInfo = {
                 username: "student_test_001",

@@ -74,6 +74,7 @@ import { ref, watch, reactive, defineAsyncComponent } from 'vue';
 import { useStudentInfoStore } from '../../store/studentInfoStore';
 import { ElMessage } from 'element-plus';
 import _ from 'lodash';
+import { updateStudentInfo_method } from '../../api/axios';
 
 // 异步加载子组件
 const EditableItem = defineAsyncComponent(() =>
@@ -118,13 +119,15 @@ const handleCancel = () => {
   handleClose();
 };
 
+//保存修改信息
 const handleSave = () => {
-  // 在这里可以调用API将 editableInfo 发送到后端
-  console.log('保存的信息:', editableInfo);
   
   // 更新 Pinia store
   store.saveStudentInfo(editableInfo);
 
+  //axios请求
+  updateStudentInfo_method();
+  
   ElMessage.success('信息更新成功！');
   isEditing.value = null;
   handleClose();

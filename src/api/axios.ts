@@ -145,3 +145,28 @@ export const getStudentInfo_method = async ()=> {
         throw error;
     }
 }
+
+//更新学生信息
+export const updateStudentInfo_method = async ()=> {
+  try{
+    const identity = localStorage.getItem('identity');
+
+    const store = useStudentInfoStore();
+    if(store.userInfo){
+      const response = await apiClient.post(`api/${identity}/update/${store.userInfo.studentNumber}`, store.userInfo);
+
+      if (response.data.code == 200){
+        ElMessage.success(response.data.message);
+      }
+      else{
+        ElMessage.error(response.data.message);
+      }
+    }
+    else{
+      ElMessage.error('用户信息不存在');
+    }
+  }catch(error){
+    ElMessage.error(`更新学生信息失败，${error}`);
+    throw error;
+  }
+}
