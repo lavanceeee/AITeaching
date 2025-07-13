@@ -116,7 +116,6 @@ import UpdateInfo from '../../../components/studentCom/UpdateInfo.vue';
 import router from '../../../router';
 
 const store = useStudentInfoStore();
-store.setTestInfo();
 const userInfo = computed(() => store.userInfo);
 
 const isUpdateInfoVisible = ref(false);

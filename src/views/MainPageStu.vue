@@ -93,7 +93,12 @@ const major = ref('')
 
 //加载钩子发送信息请求
 onMounted(()=>{
+
+    //获取学生信息
+    getStudentInfo_method();
+
     const store = useStudentInfoStore();
+    
     if (store.userInfo){
         studentNumber.value = store.userInfo.studentNumber;
         major.value = store.userInfo.major;
