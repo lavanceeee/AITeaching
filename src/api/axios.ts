@@ -147,16 +147,21 @@ export const getStudentInfo_method = async ()=> {
 }
 
 //更新学生信息
-export const updateStudentInfo_method = async ()=> {
+export const updateStudentInfo_method = async (updatedFields: Record<string, any>)=> {
   try{
     const identity = localStorage.getItem('identity');
 
     const store = useStudentInfoStore();
     if(store.userInfo){
-      const response = await apiClient.post(`api/${identity}/update/${store.userInfo.studentNumber}`, store.userInfo);
+
+      //使用put请求，只发送更新过的字段
+      const response = await apiClient.put(`api/${identity}/update/${store.userInfo.studentNumber}`, updatedFields);
 
       if (response.data.code == 200){
         ElMessage.success(response.data.message);
+        // 更新成功后，同步更新 Pinia 中的状态
+        const newInfo = { ...store.userInfo, ...updatedFields };
+        store.saveStudentInfo(newInfo);
       }
       else{
         ElMessage.error(response.data.message);

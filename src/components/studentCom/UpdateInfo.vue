@@ -120,17 +120,42 @@ const handleCancel = () => {
 };
 
 //保存修改信息
-const handleSave = () => {
-  
-  // 更新 Pinia store
-  store.saveStudentInfo(editableInfo);
+const handleSave = async () => {
+  const originalUserInfo = store.userInfo;
+  const changedFields = {};
+
+  if (!originalUserInfo) {
+    ElMessage.error('无法获取原始用户信息！');
+    return;
+  }
+
+  // 遍历 editableInfo 的键，并与原始数据进行比较
+  Object.keys(editableInfo).forEach(key => {
+    // 使用 lodash 的 isEqual 进行深度比较，可以正确处理对象和数组等复杂情况
+    if (!_.isEqual(editableInfo[key], originalUserInfo[key])) {
+      changedFields[key] = editableInfo[key];
+    }
+  });
+
+  // 如果没有字段被修改，则提示用户并关闭对话框
+  if (Object.keys(changedFields).length === 0) {
+    ElMessage.info('您没有修改任何信息。');
+    isEditing.value = null;
+    handleClose();
+    return;
+  }
 
   //axios请求
-  updateStudentInfo_method();
-  
-  ElMessage.success('信息更新成功！');
-  isEditing.value = null;
-  handleClose();
+  //将修改过的信息单独封装，并发给后端
+  try {
+    // 调用更新方法，只传递包含已更改字段的对象
+    // 成功/失败的消息和 store 的更新已在 axios.ts 中统一处理
+    await updateStudentInfo_method(changedFields);
+  } finally {
+    // 无论请求成功与否，都重置编辑状态并关闭对话框
+    isEditing.value = null;
+    handleClose();
+  }
 };
 </script>
 
