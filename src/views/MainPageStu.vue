@@ -86,6 +86,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useStudentInfoStore } from '../store/studentInfoStore';
+import { getStudentInfo_method } from '../api/axios';
 
 //studentNumber
 const studentNumber = ref('')
@@ -98,7 +99,7 @@ onMounted(()=>{
     getStudentInfo_method();
 
     const store = useStudentInfoStore();
-    
+
     if (store.userInfo){
         studentNumber.value = store.userInfo.studentNumber;
         major.value = store.userInfo.major;
