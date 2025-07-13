@@ -31,7 +31,7 @@
           <el-button @click="handleLogout" plain>退出登录</el-button>
         </div>
       </div>
-      <div class="settings-list-item" @click="showUpdateInfoDialog">
+      <div class="settings-list-item" @click="showUpdateInfoDialog" style="margin-top: 0.5rem;">
         <div class="item-content">
           <el-icon><User /></el-icon>
           <span>管理我的智慧通账号</span>
@@ -153,8 +153,8 @@ const handleLogout = () => {
 <style scoped>
 .settings-view {
   padding: 2rem 15%;
-  background-color: #202124;
-  color: #e8eaed;
+  background-color: #f0f2f5;
+  color: #303133;
   height: 100%;
   overflow-y: auto;
 }
@@ -164,7 +164,7 @@ const handleLogout = () => {
   justify-content: center;
   align-items: center;
   height: 100%;
-  color: #9aa0a6;
+  color: #909399;
 }
 
 .settings-section {
@@ -181,12 +181,12 @@ const handleLogout = () => {
 .section-title {
   font-size: 1.25rem;
   font-weight: 400;
-  color: #e8eaed;
+  color: #303133;
 }
 
 .section-description {
   font-size: 0.875rem;
-  color: #9aa0a6;
+  color: #909399;
   margin-top: -0.8rem;
   margin-bottom: 1rem;
 }
@@ -198,26 +198,27 @@ const handleLogout = () => {
 
 .el-button.is-plain {
   --el-button-bg-color: transparent;
-  --el-button-border-color: #5f6368;
-  --el-button-hover-border-color: #9aa0a6;
-  --el-button-hover-bg-color: #2d2e31;
-  --el-button-text-color: #e8eaed;
+  --el-button-border-color: #dcdfe6;
+  --el-button-hover-border-color: #c6e2ff;
+  --el-button-hover-bg-color: #ecf5ff;
+  --el-button-text-color: #606266;
 }
 
 .el-button.is-text {
-  color: #8ab4f8;
+  color: #409eff;
 }
 .el-button.is-text:hover {
-  background-color: rgba(138, 180, 248, 0.1);
+  background-color: rgba(64, 158, 255, 0.1);
 }
 
 .profile-card {
-  background-color: #2d2e31;
+  background-color: #ffffff;
   border-radius: 8px;
   padding: 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border: 1px solid #dcdfe6;
 }
 
 .profile-info {
@@ -238,7 +239,7 @@ const handleLogout = () => {
 
 .profile-detail {
   font-size: 0.875rem;
-  color: #9aa0a6;
+  color: #909399;
 }
 
 .profile-actions {
@@ -248,19 +249,20 @@ const handleLogout = () => {
 }
 
 .settings-list-item {
-  background-color: #2d2e31;
+  background-color: #ffffff;
   border-radius: 8px;
   padding: 0.8rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  margin-top: 0.5rem;
+  /* margin-top: 0.5rem; */
   transition: background-color 0.2s;
+  /* border: 1px solid #dcdfe6; */
 }
 
 .settings-list-item:hover {
-  background-color: #3c4043;
+  background-color: #f5f7fa;
 }
 
 .item-content {
@@ -271,13 +273,14 @@ const handleLogout = () => {
 }
 
 .item-content .el-icon {
-  color: #9aa0a6;
+  color: #909399;
 }
 
 .collapsible-container {
-  background-color: #2d2e31;
+  background-color: #ffffff;
   border-radius: 8px;
   overflow: hidden;
+  border: 1px solid #dcdfe6;
 }
 
 .details-content {
@@ -295,7 +298,7 @@ const handleLogout = () => {
 .detail-category {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #3c4043;
+  border-top: 1px solid #ebeef5;
 }
 .detail-category:first-child {
   margin-top: 0;
@@ -306,7 +309,7 @@ const handleLogout = () => {
 .detail-category h4 {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #8ab4f8;
+  color: #409eff;
   margin: 0 0 1rem 0;
 }
 
@@ -318,12 +321,12 @@ const handleLogout = () => {
 }
 
 .detail-item span:first-child {
-  color: #9aa0a6;
+  color: #909399;
 }
 
 .bio {
   font-size: 0.875rem;
-  color: #e8eaed;
+  color: #606266;
   line-height: 1.5;
   margin: 0;
 }
