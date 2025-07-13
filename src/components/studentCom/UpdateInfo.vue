@@ -1,49 +1,45 @@
 <template>
-  <el-dialog
-    v-model="dialogVisible"
-    title="修改个人信息"
-    width="60%"
-    :before-close="handleClose"
-    top="8vh"
-    class="update-info-dialog"
-  >
+  <el-dialog v-model="dialogVisible" title="修改个人信息" width="60%" :before-close="handleClose" top="8vh"
+    class="update-info-dialog">
     <el-scrollbar max-height="65vh">
       <div class="form-container">
         <el-tabs v-model="activeTab" tab-position="left" class="info-tabs">
-          
+
           <!-- 基础信息 -->
           <el-tab-pane label="基础信息" name="basic">
             <div class="tab-content">
               <h3>基础信息</h3>
               <p>管理您的基本个人资料。</p>
-              
+
               <!-- Avatar Upload -->
               <div class="avatar-container">
-                <el-upload
-                  class="avatar-uploader"
-                  :action="uploadAction"
-                  :show-file-list="false"
-                  :on-success="handleAvatarSuccess"
-                  :before-upload="beforeAvatarUpload"
-                  :headers="{
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                  }"
-                >
+                <el-upload class="avatar-uploader" :action="uploadAction" :show-file-list="false"
+                  :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload" :headers="{
+                    'Authorization': 'Bearer ' + token
+                  }">
                   <el-avatar :size="80" :src="editableInfo.avatar" />
                   <div class="avatar-uploader-overlay">
-                    <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
+                    <el-icon class="avatar-uploader-icon">
+                      <Plus />
+                    </el-icon>
                   </div>
                 </el-upload>
               </div>
 
               <div class="info-list">
-                
-                <EditableItem field="realName" label="真实姓名" v-model="editableInfo.realName" :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="nickname" label="昵称" v-model="editableInfo.nickname" :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="gender" label="性别" v-model="editableInfo.gender" type="gender" :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="birthday" label="生日" v-model="editableInfo.birthday" type="date" :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="idCard" label="身份证号" v-model="editableInfo.idCard" :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="bio" label="个人简介" v-model="editableInfo.bio" type="textarea" :is-editing="isEditing" @edit="startEditing" />
+
+                <EditableItem field="realName" label="真实姓名" v-model="editableInfo.realName" :is-editing="isEditing"
+                  @edit="startEditing" />
+                <EditableItem field="nickname" label="昵称" v-model="editableInfo.nickname" :is-editing="isEditing"
+                  @edit="startEditing" />
+                <EditableItem field="gender" label="性别" v-model="editableInfo.gender" type="gender"
+                  :is-editing="isEditing" @edit="startEditing" />
+                <EditableItem field="birthday" label="生日" v-model="editableInfo.birthday" type="date"
+                  :is-editing="isEditing" @edit="startEditing" />
+                <EditableItem field="idCard" label="身份证号" v-model="editableInfo.idCard" :is-editing="isEditing"
+                  @edit="startEditing" />
+                <EditableItem field="bio" label="个人简介" v-model="editableInfo.bio" type="textarea"
+                  :is-editing="isEditing" @edit="startEditing" />
               </div>
             </div>
           </el-tab-pane>
@@ -54,25 +50,34 @@
               <h3>联系方式</h3>
               <p>管理您的联系信息，以便我们能及时与您沟通。</p>
               <div class="info-list">
-                <EditableItem field="email" label="邮箱" v-model="editableInfo.email" :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="phone" label="手机号" v-model="editableInfo.phone" :is-editing="isEditing" @edit="startEditing" />
+                <EditableItem field="email" label="邮箱" v-model="editableInfo.email" :is-editing="isEditing"
+                  @edit="startEditing" />
+                <EditableItem field="phone" label="手机号" v-model="editableInfo.phone" :is-editing="isEditing"
+                  @edit="startEditing" />
               </div>
             </div>
           </el-tab-pane>
 
           <!-- 学籍信息 -->
           <el-tab-pane label="学籍信息" name="academic">
-             <div class="tab-content">
+            <div class="tab-content">
               <h3>学籍信息</h3>
               <p>您的学籍档案，部分关键信息可能需要联系管理员修改。</p>
               <div class="info-list">
-                <EditableItem field="school" label="学校" v-model="editableInfo.school" :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="college" label="学院" v-model="editableInfo.college" :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="grade" label="年级" v-model="editableInfo.grade" :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="major" label="专业" v-model="editableInfo.major" :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="className" label="班级" v-model="editableInfo.className" :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="enrollmentDate" label="入学日期" v-model="editableInfo.enrollmentDate" type="date" :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="graduationDate" label="毕业日期" v-model="editableInfo.graduationDate" type="date" :is-editing="isEditing" @edit="startEditing" />
+                <EditableItem field="school" label="学校" v-model="editableInfo.school" :is-editing="isEditing"
+                  @edit="startEditing" />
+                <EditableItem field="college" label="学院" v-model="editableInfo.college" :is-editing="isEditing"
+                  @edit="startEditing" />
+                <EditableItem field="grade" label="年级" v-model="editableInfo.grade" :is-editing="isEditing"
+                  @edit="startEditing" />
+                <EditableItem field="major" label="专业" v-model="editableInfo.major" :is-editing="isEditing"
+                  @edit="startEditing" />
+                <EditableItem field="className" label="班级" v-model="editableInfo.className" :is-editing="isEditing"
+                  @edit="startEditing" />
+                <EditableItem field="enrollmentDate" label="入学日期" v-model="editableInfo.enrollmentDate" type="date"
+                  :is-editing="isEditing" @edit="startEditing" />
+                <EditableItem field="graduationDate" label="毕业日期" v-model="editableInfo.graduationDate" type="date"
+                  :is-editing="isEditing" @edit="startEditing" />
               </div>
             </div>
           </el-tab-pane>
@@ -97,15 +102,17 @@ import { ElMessage } from 'element-plus';
 import _ from 'lodash';
 import { updateStudentInfo_method } from '../../api/axios';
 import { Plus } from '@element-plus/icons-vue';
-import { BASE_URL } from '../../api/config'
+import { BASE_URL, Image_URL } from '../../api/config'
 
 //el-upload的action定义
-const uploadAction = BASE_URL + 'upload/image';
+const uploadAction = BASE_URL + '/upload/image';
 
 // 异步加载子组件
 const EditableItem = defineAsyncComponent(() =>
   import('./EditableItem.vue')
 );
+
+let token = ref(localStorage.getItem('token'))
 
 const props = defineProps({
   visible: {
@@ -150,9 +157,9 @@ const handleCancel = () => {
 };
 
 const handleAvatarSuccess = (response, uploadFile) => {
-  
-  editableInfo.avatar = response.data.fileUrl; 
+  editableInfo.avatar = Image_URL + response.data.fileUrl;
   store.userInfo.avatar = editableInfo.avatar;
+  // TODO: 上传头像地址以更新学生数据
   ElMessage.success('头像上传成功！');
 };
 
@@ -205,7 +212,7 @@ const handleSave = async () => {
   try {
     // 调用更新方法，只传递包含已更改字段的对象
     // 成功/失败的消息和 store 的更新已在 axios.ts 中统一处理
-    
+
     //添加学生的id
     changedFields.id = store.userInfo.id;
     //发送数据
@@ -246,6 +253,7 @@ const handleSave = async () => {
   font-size: 1.5rem;
   font-weight: 500;
 }
+
 .tab-content p {
   margin: 0 0 25px 0;
   font-size: 0.9rem;
