@@ -286,14 +286,23 @@ const selectIdentity = (identity: string) => {
 };
 
 // 注册方法
-const handleRegister = () => {
+const handleRegister = async () => {
+  if (!registerForm.value) return;
 
-  const registerData = {
-    identity: selectedIdentity.value,
-    formData: formData
-  }
-  register_method(registerData);
-
+  await registerForm.value.validate((valid, fields) => {
+    if (valid) {
+      // 验证通过，执行注册逻辑
+      const registerData = {
+        identity: selectedIdentity.value,
+        formData: formData
+      };
+      register_method(registerData);
+    } else {
+      // 验证失败
+      ElMessage.error('请检查表单中所有必填项是否都已正确填写。');
+      console.log('error submit!', fields);
+    }
+  });
 };
 
 // 返回登录页
