@@ -99,7 +99,7 @@ export const login_method = async (params: LoginParams)=>{
 //注册
 export const register_method = async (params: RegisterParams)=>{
     try{
-        const response = await apiClient.post(`${params.identity}/register`, params);
+        const response = await apiClient.post(`${params.identity}/register`, params.formData);
         if (response.data.code == 200){
             ElMessage.success(response.data.message)
             //弹出跳转Box
