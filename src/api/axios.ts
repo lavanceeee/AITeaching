@@ -127,7 +127,7 @@ export const getStudentInfo_method = async ()=> {
         const identity = localStorage.getItem('identity')
         const studentID = localStorage.getItem('id')
         //根据ID获取详细信息
-        const response = await apiClient.post(`${identity}/${studentID}`)
+        const response = await apiClient.get(`${identity}/${studentID}`)
 
     if (response.data.code == 200) {
       //拿到了用户的所有的信息，保存在pinia
