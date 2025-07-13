@@ -130,7 +130,7 @@ watch(() => props.visible, (newVal) => {
     Object.assign(editableInfo, _.cloneDeep(store.userInfo));
     if (!editableInfo.avatar) {
       // 提供一个默认头像，防止src为空
-      editableInfo.avatar = "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png";
+      editableInfo.avatar = "https://cuhttps://pic.616pic.com/ys_bnew_img/00/42/51/nLWA3fYywP.jpgbe.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png";
     }
     isEditing.value = null; // 重置编辑状态
   }
@@ -152,6 +152,7 @@ const handleCancel = () => {
 const handleAvatarSuccess = (response, uploadFile) => {
   
   editableInfo.avatar = response.data.fileUrl; 
+  store.userInfo.avatar = editableInfo.avatar;
   ElMessage.success('头像上传成功！');
 };
 
