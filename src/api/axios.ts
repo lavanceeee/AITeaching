@@ -158,13 +158,16 @@ export const updateStudentInfo_method = async (updatedFields: Record<string, any
     if (store.userInfo) {
 
       //使用put请求，只发送更新过的字段
-      const response = await apiClient.put(`${identity}/update/${store.userInfo.studentNumber}`, updatedFields);
+      const response = await apiClient.put(`${identity}/update`, updatedFields);
 
       if (response.data.code == 200) {
         ElMessage.success(response.data.message);
         // 更新成功后，同步更新 Pinia 中的状态
         const newInfo = { ...store.userInfo, ...updatedFields };
         store.saveStudentInfo(newInfo);
+
+        //刷新信息
+        getStudentInfo_method();
       }
       else {
         ElMessage.error(response.data.message);

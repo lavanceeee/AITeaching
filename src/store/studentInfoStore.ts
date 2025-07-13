@@ -2,6 +2,7 @@ import {defineStore} from 'pinia'
 
 // 定义用户信息的接口
 interface UserInfo {
+  id: number;   
   username: string;
   nickname?: string;
   email: string;
@@ -36,6 +37,7 @@ export const useStudentInfoStore = defineStore('studentInfo', {
         //测试使用学生信息
         setTestInfo() {
             this.userInfo = {
+                id: 1,
                 username: "student_test_001",
                 nickname: "测试小明",
                 email: "test_student@example.com",
