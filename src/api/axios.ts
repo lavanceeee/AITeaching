@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { BASE_URL } from './config'
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import router from '../router';
 import { useStudentInfoStore } from '../store/studentInfoStore';
 
@@ -18,18 +18,18 @@ apiClient.interceptors.request.use(
   config => {
     // 获取token
     const token = localStorage.getItem('token');
-    
+
     // 判断是否是登录或注册请求
     const isAuthPath = config.url && (
-      config.url.includes('/login') || 
+      config.url.includes('/login') ||
       config.url.includes('/register')
     );
-    
+
     // 如果有token且不是登录注册请求，则添加到请求头
     if (token && !isAuthPath) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     return config;
   },
   error => {
@@ -59,118 +59,119 @@ apiClient.interceptors.response.use(
 //参数
 //登录参数
 interface LoginParams {
-    identity: string; //身份标识
-    studentNumber: string;
-    password: string;
-    rememberMe: boolean;
+  identity: string; //身份标识
+  studentNumber: string;
+  password: string;
+  rememberMe: boolean;
 }
 
 //注册参数
 interface RegisterParams {
-    identity: string; //身份标识
-    phone: string;
-    email: string;
-    password: string;
-    confirmPassword: string;
-    
-    school: string;
-    major: string;
-    className: string;
-    studentNumber: string;
+  identity: string; //身份标识
+  formData: any;
 }
 
 //登录
-export const login_method = async (params: LoginParams)=>{
-    try{
-        console.log(params);
-        const response = await apiClient.post(`api/${params.identity}/login`, params);
-        
-        if (response.data.code == 200) {
-            ElMessage.success(response.data.message + '即将跳转至主页！')
+export const login_method = async (params: LoginParams) => {
+  try {
+    console.log(params);
+    const response = await apiClient.post(`api/${params.identity}/login`, params);
 
-            //localStorage
-            //有问题
-            localStorage.setItem('token', response.data.token)
-            localStorage.setItem('identity', params.identity)
+    if (response.data.code == 200) {
+      ElMessage.success(response.data.message + '即将跳转至主页！')
 
-            //跳转
-            router.push(`/${params.identity}/dashboard`)
-        }else {
-            ElMessage.error(response.data.message)
-        }
-    }catch(error){
-        ElMessage.error(`登录出错！${error}`);
-        throw error;
+      //localStorage
+      //有问题
+      localStorage.setItem('token', response.data.token)
+      localStorage.setItem('identity', params.identity)
+
+      //跳转
+      router.push(`/${params.identity}/dashboard`)
+    } else {
+      ElMessage.error(response.data.message)
     }
+  } catch (error) {
+    ElMessage.error(`登录出错！${error}`);
+    throw error;
+  }
 }
 
 //注册
-export const register_method = async (params: RegisterParams)=>{
-    try{
-        const response = await apiClient.post(`api/${params.identity}/register`, params);
-        if (response.data.code == 200){
-            ElMessage.success(response.data.message)
+export const register_method = async (params: RegisterParams) => {
+  try {
+    console.log(params.formData);
+    
+    const response = await apiClient.post(`api/${params.identity}/register`, params.formData);
+    
+    if (response.data.code == 200) {
+      // 注册成功后跳转到登录页
+      ElMessageBox.alert('注册成功，请登录', '提示', {
+        confirmButtonText: '确定',
+        callback: () => {
+          router.push('/login');
         }
-        else{
-            ElMessage.error(response.data.message)
-        }
-    }catch(error){
-        ElMessage.error(`注册失败，${error}`);
-        throw error;
+      });
     }
+    else {
+      ElMessage.error(response.data.message)
+    }
+  } catch (error) {
+    ElMessage.error(`注册失败，${error}`);
+    throw error;
+  }
 }
 
 //获取学生的信息: 使用学号
-export const getStudentInfo_method = async ()=> {
-    try{
-        const identity = localStorage.getItem('identity')
-        const studentNumber = localStorage.getItem('studentNumber')
-        const response = await apiClient.post(`api/${identity}/getStudentInfoByStudentNumber/${studentNumber}`)
+export const getStudentInfo_method = async () => {
+  try {
+    const identity = localStorage.getItem('identity')
+    const studentNumber = localStorage.getItem('studentNumber')
+    const response = await apiClient.post(`api/${identity}/getStudentInfoByStudentNumber/${studentNumber}`)
 
-        if (response.data.code == 200){
-            //拿到了用户的所有的信息，保存在pinia
-            const userInfo = response.data.data
-            const store = useStudentInfoStore();
-            store.saveStudentInfo(userInfo)
-        }
-        else{
-            const store = useStudentInfoStore();
-            store.clearStudentInfo();
-        }
-
-    } catch (error) {
-        const store = useStudentInfoStore();
-        store.clearStudentInfo();
-        ElMessage.error(`获取学生信息失败，${error}`);
-        throw error;
+    if (response.data.code == 200) {
+      //拿到了用户的所有的信息，保存在pinia
+      const userInfo = response.data.data
+      const store = useStudentInfoStore();
+      store.saveStudentInfo(userInfo)
     }
+    else {
+      const store = useStudentInfoStore();
+      store.clearStudentInfo();
+    }
+
+  } catch (error) {
+    const store = useStudentInfoStore();
+    store.clearStudentInfo();
+    ElMessage.error(`获取学生信息失败，${error}`);
+    throw error;
+  }
 }
 
 //更新学生信息
-export const updateStudentInfo_method = async (updatedFields: Record<string, any>)=> {
-  try{
+export const updateStudentInfo_method = async (updatedFields: Record<string, any>) => {
+  try {
     const identity = localStorage.getItem('identity');
 
     const store = useStudentInfoStore();
-    if(store.userInfo){
+    if (store.userInfo) {
 
       //使用put请求，只发送更新过的字段
       const response = await apiClient.put(`api/${identity}/update/${store.userInfo.studentNumber}`, updatedFields);
 
-      if (response.data.code == 200){
+      if (response.data.code == 200) {
         ElMessage.success(response.data.message);
         // 更新成功后，同步更新 Pinia 中的状态
         const newInfo = { ...store.userInfo, ...updatedFields };
         store.saveStudentInfo(newInfo);
       }
-      else{
+      else {
         ElMessage.error(response.data.message);
       }
     }
-    else{
+    else {
       ElMessage.error('用户信息不存在');
     }
-  }catch(error){
+  } catch (error) {
     ElMessage.error(`更新学生信息失败，${error}`);
     throw error;
   }

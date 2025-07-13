@@ -162,7 +162,8 @@ import {
   MagicStick,
   User
 } from '@element-plus/icons-vue';
-import { ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
+import { register_method } from '../api/axios';
 
 const router = useRouter();
 const registerForm = ref<FormInstance>();
@@ -285,31 +286,14 @@ const selectIdentity = (identity: string) => {
 };
 
 // 注册方法
-const handleRegister = async () => {
-  if (!registerForm.value) return;
-  
-  await registerForm.value.validate((valid, fields) => {
-    if (valid) {
-      // 添加身份信息
-      const registerData = {
-        ...formData,
-        identity: selectedIdentity.value
-      };
-      
-      // TODO: 调用注册API
-      console.log('注册信息:', registerData);
-      
-      // 注册成功后跳转到登录页
-      ElMessageBox.alert('注册成功，请登录', '提示', {
-        confirmButtonText: '确定',
-        callback: () => {
-          router.push('/login');
-        }
-      });
-    } else {
-      console.log('表单校验失败', fields);
-    }
-  });
+const handleRegister = () => {
+
+  const registerData = {
+    identity: selectedIdentity.value,
+    formData: formData
+  }
+  register_method(registerData);
+
 };
 
 // 返回登录页
