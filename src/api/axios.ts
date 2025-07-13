@@ -102,6 +102,14 @@ export const register_method = async (params: RegisterParams)=>{
         const response = await apiClient.post(`${params.identity}/register`, params);
         if (response.data.code == 200){
             ElMessage.success(response.data.message)
+            //弹出跳转Box
+            ElMessageBox.alert('注册成功，即将跳转至登录页', '提示', {
+                confirmButtonText: '确定',
+                showCancelButton: false,
+                type: 'success'
+            }).then(() => {
+                router.push('/login');
+            });
         }
         else{
             ElMessage.error(response.data.message)
