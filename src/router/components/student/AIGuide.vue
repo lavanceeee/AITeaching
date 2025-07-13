@@ -1,5 +1,22 @@
 <template>
     <div class="ai-guide">
+        <!-- 悬浮功能栏 -->
+        <div class="floating-header" ref="floatingHeaderRef">
+            <div class="header-hover-bg" ref="hoverBgRef"></div>
+            <button class="header-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8s-3.58 8-8 8zm.5-13H11v6l5.25 3.15l.75-1.23l-4.5-2.67z"/></svg>
+                <span>对话历史</span>
+            </button>
+            <button class="header-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"/></svg>
+                <span>历史搜索</span>
+            </button>
+            <button class="header-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5l1.5 3.5l3.5 1.5l-3.5 1.5l-1.5 3.5l-1.5-3.5l-3.5-1.5l3.5-1.5L12 2.5zM6 9.5l1 2l2 1l-2 1l-1 2l-1-2l-2-1l2-1l1-2zm12 6l1 2l2 1l-2 1l-1 2l-1-2l-2-1l2-1l1-2z"/></svg>
+                <span>专业模式</span>
+            </button>
+        </div>
+
         <div class="chat-container">
             <div class="welcome-message">
                 <h2>您的智慧AI教师，欢迎提问</h2>
@@ -47,6 +64,34 @@
     </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue';
+
+const floatingHeaderRef = ref(null);
+const hoverBgRef = ref(null);
+
+onMounted(() => {
+    const header = floatingHeaderRef.value;
+    const hoverBg = hoverBgRef.value;
+    if (!header || !hoverBg) return;
+
+    const buttons = header.querySelectorAll('.header-button');
+
+    buttons.forEach(button => {
+        button.addEventListener('mouseenter', (e) => {
+            const { offsetLeft, offsetWidth } = e.currentTarget;
+            hoverBg.style.left = `${offsetLeft}px`;
+            hoverBg.style.width = `${offsetWidth}px`;
+            hoverBg.style.opacity = '1';
+        });
+    });
+
+    header.addEventListener('mouseleave', () => {
+        hoverBg.style.opacity = '0';
+    });
+});
+</script>
+
 <style scoped>
 .ai-guide {
     width: 100%;
@@ -60,7 +105,7 @@
 .chat-container {
     flex: 1;
     overflow-y: auto;
-    padding: 2rem;
+    padding: 100px 2rem 2rem 2rem; /* 增加顶部内边距，防止被header遮挡 */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -94,6 +139,71 @@
 .welcome-message p {
     color: #666;
     font-size: 1.1rem;
+}
+
+/* 新增悬浮栏样式 */
+.floating-header {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40%;
+    max-width: 800px;
+    padding: 12px 20px;
+    
+    /* Frosted glass effect */
+    background: rgba(248, 249, 250, 0.6);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 从左侧开始排列  flex-start*/
+    gap: 20px;
+    z-index: 10;
+    position: relative; /* Added for containing the hover background */
+}
+
+.header-hover-bg {
+    position: absolute;
+    top: 10px; /* Adjust to vertically center */
+    height: calc(100% - 20px);
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    z-index: 1; /* Behind buttons */
+}
+
+.header-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    font-size: 0.95rem;
+    color: #333;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    z-index: 2; /* In front of hover background */
+    position: relative;
+}
+
+.header-button:hover {
+    background-color: transparent; /* Remove old hover effect */
+}
+
+.header-button svg {
+    width: 18px;
+    height: 18px;
 }
 
 .input-panel {

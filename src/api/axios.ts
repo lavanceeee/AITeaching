@@ -121,6 +121,9 @@ export const register_method = async (params: RegisterParams)=>{
     }
 }
 
+//验证手机号，邮箱，学号是否已经存在
+
+
 //获取学生的信息: 使用学号
 export const getStudentInfo_method = async ()=> {
     try{

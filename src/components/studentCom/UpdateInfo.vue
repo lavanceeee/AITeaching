@@ -16,7 +16,28 @@
             <div class="tab-content">
               <h3>基础信息</h3>
               <p>管理您的基本个人资料。</p>
+              
+              <!-- Avatar Upload -->
+              <div class="avatar-container">
+                <el-upload
+                  class="avatar-uploader"
+                  :action="uploadAction"
+                  :show-file-list="false"
+                  :on-success="handleAvatarSuccess"
+                  :before-upload="beforeAvatarUpload"
+                  :headers="{
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                  }"
+                >
+                  <el-avatar :size="80" :src="editableInfo.avatar" />
+                  <div class="avatar-uploader-overlay">
+                    <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
+                  </div>
+                </el-upload>
+              </div>
+
               <div class="info-list">
+                
                 <EditableItem field="realName" label="真实姓名" v-model="editableInfo.realName" :is-editing="isEditing" @edit="startEditing" />
                 <EditableItem field="nickname" label="昵称" v-model="editableInfo.nickname" :is-editing="isEditing" @edit="startEditing" />
                 <EditableItem field="gender" label="性别" v-model="editableInfo.gender" type="gender" :is-editing="isEditing" @edit="startEditing" />
@@ -75,6 +96,11 @@ import { useStudentInfoStore } from '../../store/studentInfoStore';
 import { ElMessage } from 'element-plus';
 import _ from 'lodash';
 import { updateStudentInfo_method } from '../../api/axios';
+import { Plus } from '@element-plus/icons-vue';
+import { BASE_URL } from '../../api/config'
+
+//el-upload的action定义
+const uploadAction = BASE_URL + 'upload/image';
 
 // 异步加载子组件
 const EditableItem = defineAsyncComponent(() =>
@@ -102,6 +128,10 @@ watch(() => props.visible, (newVal) => {
   if (newVal) {
     // 使用 lodash 的深拷贝，确保数据隔离
     Object.assign(editableInfo, _.cloneDeep(store.userInfo));
+    if (!editableInfo.avatar) {
+      // 提供一个默认头像，防止src为空
+      editableInfo.avatar = "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png";
+    }
     isEditing.value = null; // 重置编辑状态
   }
 });
@@ -119,7 +149,31 @@ const handleCancel = () => {
   handleClose();
 };
 
-//保存修改信息
+const handleAvatarSuccess = (response, uploadFile) => {
+  
+  editableInfo.avatar = response.data.fileUrl; 
+  ElMessage.success('头像上传成功！');
+};
+
+const beforeAvatarUpload = (rawFile) => {
+  //图片类型：JPG, JPEG, PNG, GIF, BMP, WEBP
+  const isJpgOrPng = rawFile.type === 'image/jpeg' || rawFile.type === 'image/png' || rawFile.type === 'image/bmp' || rawFile.type === 'image/webp';
+  //图片大小：10MB
+  const isLt2M = rawFile.size / 1024 / 1024 < 10;
+
+  if (!isJpgOrPng) {
+    ElMessage.error('头像图片只能是 JPG/PNG/BMP/WEBP 格式');
+    return false;
+  }
+  if (!isLt2M) {
+    ElMessage.error('头像图片大小不能超过 10MB');
+    return false;
+  }
+  return isJpgOrPng && isLt2M;
+};
+
+
+//点击保存按钮
 const handleSave = async () => {
   const originalUserInfo = store.userInfo;
   const changedFields = {};
@@ -195,6 +249,50 @@ const handleSave = async () => {
   margin: 0 0 25px 0;
   font-size: 0.9rem;
   color: #888;
+}
+
+.avatar-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.avatar-uploader {
+  position: relative;
+  border-radius: 50%;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.avatar-uploader .el-avatar {
+  border: 2px solid #eef0f3;
+  transition: filter 0.3s;
+}
+
+.avatar-uploader:hover .el-avatar {
+  filter: brightness(0.7);
+}
+
+.avatar-uploader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.avatar-uploader:hover .avatar-uploader-overlay {
+  opacity: 1;
+}
+
+.avatar-uploader-icon {
+  color: white;
+  font-size: 24px;
 }
 
 .info-list {

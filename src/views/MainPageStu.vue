@@ -16,7 +16,7 @@
             <div class="sidebar-content">
                 <div class="user-profile">
                     <div class="avatar">
-                        <img src="../assets/icons/mainPageStu/StudentAvatar.svg" alt="Avatar" />
+                        <img :src="avatarUrl" alt="Avatar" />
                     </div>
                     <div class="user-info" v-show="!isCollapsed">
                         <div class="user-id">学号：{{ studentNumber }}</div>
@@ -84,26 +84,22 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { useStudentInfoStore } from '../store/studentInfoStore';
 import { getStudentInfo_method } from '../api/axios';
 
-//studentNumber
-const studentNumber = ref('')
-const major = ref('')
+const store = useStudentInfoStore();
+
+// 使用 computed 来确保数据是响应式的
+const studentNumber = computed(() => store.userInfo?.studentNumber || 'N/A');
+const major = computed(() => store.userInfo?.major || 'N/A');
+const avatarUrl = computed(() => store.userInfo?.avatar);
+
 
 //加载钩子发送信息请求
 onMounted(()=>{
-
     //获取学生信息
     getStudentInfo_method();
-
-    const store = useStudentInfoStore();
-
-    if (store.userInfo){
-        studentNumber.value = store.userInfo.studentNumber;
-        major.value = store.userInfo.major;
-    }
 })
 
 //折叠状态

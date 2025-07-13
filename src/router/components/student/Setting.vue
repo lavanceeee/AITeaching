@@ -19,7 +19,7 @@
       </div>
       <div class="profile-card">
         <div class="profile-info">
-          <el-avatar :size="48" src="/src/assets/icons/mainPageStu/StudentAvatar.svg" />
+          <el-avatar :size="48" :src="userInfo.avatar" />
           <div class="info-text">
             <span class="profile-name">{{ userInfo.username }}</span>
             <span class="profile-detail">学号: {{ userInfo.studentNumber }}</span>
@@ -116,6 +116,7 @@ import UpdateInfo from '../../../components/studentCom/UpdateInfo.vue';
 import router from '../../../router';
 
 const store = useStudentInfoStore();
+// store.setTestInfo();
 const userInfo = computed(() => store.userInfo);
 
 const isUpdateInfoVisible = ref(false);
