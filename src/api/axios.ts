@@ -74,17 +74,18 @@ interface RegisterParams {
 //登录
 export const login_method = async (params: LoginParams)=>{
     try{
-        console.log(params);
-        const response = await apiClient.post(`${params.identity}/login`, params);
-        
-        if (response.data.code == 200) {
-            ElMessage.success(response.data.message + '即将跳转至主页！')
+    console.log(params);
+    const response = await apiClient.post(`${params.identity}/login`, params);
 
+    if (response.data.code == 200) {
+      ElMessage.success(response.data.message + '即将跳转至主页！')
+
+      console.log(response)
       //localStorage
       //有问题
-      localStorage.setItem('token', response.data.token)
+      localStorage.setItem('token', response.data.data.token)
       localStorage.setItem('identity', params.identity)
-      localStorage.setItem('id', response.data.data.id)
+      localStorage.setItem('id', response.data.data.student.id)
 
       //跳转
       router.push(`/${params.identity}/dashboard`)
@@ -100,34 +101,34 @@ export const login_method = async (params: LoginParams)=>{
 //注册
 export const register_method = async (params: RegisterParams)=>{
     try{
-        const response = await apiClient.post(`${params.identity}/register`, params.formData);
+    const response = await apiClient.post(`${params.identity}/register`, params.formData);
         if (response.data.code == 200){
-            ElMessage.success(response.data.message)
-            //弹出跳转Box
-            ElMessageBox.alert('注册成功，即将跳转至登录页', '提示', {
-                confirmButtonText: '确定',
-                showCancelButton: false,
-                type: 'success'
-            }).then(() => {
-                router.push('/login');
-            });
-        }
-        else{
-            ElMessage.error(response.data.message)
-        }
-    }catch(error){
-        ElMessage.error(`注册失败，${error}`);
-        throw error;
+      ElMessage.success(response.data.message)
+      //弹出跳转Box
+      ElMessageBox.alert('注册成功，即将跳转至登录页', '提示', {
+        confirmButtonText: '确定',
+        showCancelButton: false,
+        type: 'success'
+      }).then(() => {
+        router.push('/login');
+      });
     }
+        else{
+      ElMessage.error(response.data.message)
+    }
+    }catch(error){
+    ElMessage.error(`注册失败，${error}`);
+    throw error;
+  }
 }
 
 //获取学生的信息: 使用学号
 export const getStudentInfo_method = async ()=> {
     try{
-        const identity = localStorage.getItem('identity')
-        const studentID = localStorage.getItem('id')
-        //根据ID获取详细信息
-        const response = await apiClient.get(`${identity}/${studentID}`)
+    const identity = localStorage.getItem('identity')
+    const studentID = localStorage.getItem('id')
+    //根据ID获取详细信息
+    const response = await apiClient.get(`${identity}/${studentID}`)
 
     if (response.data.code == 200) {
       //拿到了用户的所有的信息，保存在pinia
