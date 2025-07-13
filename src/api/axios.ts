@@ -84,6 +84,7 @@ export const login_method = async (params: LoginParams)=>{
       //有问题
       localStorage.setItem('token', response.data.token)
       localStorage.setItem('identity', params.identity)
+      localStorage.setItem('id', response.data.data.id)
 
       //跳转
       router.push(`/${params.identity}/dashboard`)
@@ -124,8 +125,9 @@ export const register_method = async (params: RegisterParams)=>{
 export const getStudentInfo_method = async ()=> {
     try{
         const identity = localStorage.getItem('identity')
-        const studentNumber = localStorage.getItem('studentNumber')
-        const response = await apiClient.post(`${identity}/getStudentInfoByStudentNumber/${studentNumber}`)
+        const studentID = localStorage.getItem('id')
+        //根据ID获取详细信息
+        const response = await apiClient.post(`${identity}/${studentID}`)
 
     if (response.data.code == 200) {
       //拿到了用户的所有的信息，保存在pinia
