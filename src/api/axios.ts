@@ -72,13 +72,13 @@ interface RegisterParams {
 }
 
 //登录
-export const login_method = async (params: LoginParams) => {
-  try {
-    console.log(params);
-    const response = await apiClient.post(`api/${params.identity}/login`, params);
-
-    if (response.data.code == 200) {
-      ElMessage.success(response.data.message + '即将跳转至主页！')
+export const login_method = async (params: LoginParams)=>{
+    try{
+        console.log(params);
+        const response = await apiClient.post(`api/${params.identity}/login`, params);
+        
+        if (response.data.code == 200) {
+            ElMessage.success(response.data.message + '即将跳转至主页！')
 
       //localStorage
       //有问题
@@ -97,36 +97,27 @@ export const login_method = async (params: LoginParams) => {
 }
 
 //注册
-export const register_method = async (params: RegisterParams) => {
-  try {
-    console.log(params.formData);
-    
-    const response = await apiClient.post(`api/${params.identity}/register`, params.formData);
-    
-    if (response.data.code == 200) {
-      // 注册成功后跳转到登录页
-      ElMessageBox.alert('注册成功，请登录', '提示', {
-        confirmButtonText: '确定',
-        callback: () => {
-          router.push('/login');
+export const register_method = async (params: RegisterParams)=>{
+    try{
+        const response = await apiClient.post(`api/${params.identity}/register`, params);
+        if (response.data.code == 200){
+            ElMessage.success(response.data.message)
         }
-      });
+        else{
+            ElMessage.error(response.data.message)
+        }
+    }catch(error){
+        ElMessage.error(`注册失败，${error}`);
+        throw error;
     }
-    else {
-      ElMessage.error(response.data.message)
-    }
-  } catch (error) {
-    ElMessage.error(`注册失败，${error}`);
-    throw error;
-  }
 }
 
 //获取学生的信息: 使用学号
-export const getStudentInfo_method = async () => {
-  try {
-    const identity = localStorage.getItem('identity')
-    const studentNumber = localStorage.getItem('studentNumber')
-    const response = await apiClient.post(`api/${identity}/getStudentInfoByStudentNumber/${studentNumber}`)
+export const getStudentInfo_method = async ()=> {
+    try{
+        const identity = localStorage.getItem('identity')
+        const studentNumber = localStorage.getItem('studentNumber')
+        const response = await apiClient.post(`api/${identity}/getStudentInfoByStudentNumber/${studentNumber}`)
 
     if (response.data.code == 200) {
       //拿到了用户的所有的信息，保存在pinia
@@ -156,7 +147,7 @@ export const updateStudentInfo_method = async (updatedFields: Record<string, any
     if (store.userInfo) {
 
       //使用put请求，只发送更新过的字段
-      const response = await apiClient.put(`api/${identity}/update/${store.userInfo.studentNumber}`, updatedFields);
+      const response = await apiClient.put(`${identity}/update/${store.userInfo.studentNumber}`, updatedFields);
 
       if (response.data.code == 200) {
         ElMessage.success(response.data.message);
