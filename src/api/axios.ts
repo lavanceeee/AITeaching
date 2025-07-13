@@ -83,7 +83,7 @@ interface RegisterParams {
 export const login_method = async (params: LoginParams)=>{
     try{
         console.log(params);
-        const response = await apiClient.post(`api/${params.identity}/login`, params);
+        const response = await apiClient.post(`${params.identity}/login`, params);
         
         if (response.data.code == 200) {
             ElMessage.success(response.data.message + '即将跳转至主页！')
@@ -107,7 +107,8 @@ export const login_method = async (params: LoginParams)=>{
 //注册
 export const register_method = async (params: RegisterParams)=>{
     try{
-        const response = await apiClient.post(`api/${params.identity}/register`, params);
+      //删去地址中的/api/
+        const response = await apiClient.post(`${params.identity}/register`, params);
         if (response.data.code == 200){
             ElMessage.success(response.data.message)
         }
@@ -125,7 +126,7 @@ export const getStudentInfo_method = async ()=> {
     try{
         const identity = localStorage.getItem('identity')
         const studentNumber = localStorage.getItem('studentNumber')
-        const response = await apiClient.post(`api/${identity}/getStudentInfoByStudentNumber/${studentNumber}`)
+        const response = await apiClient.post(`${identity}/getStudentInfoByStudentNumber/${studentNumber}`)
 
         if (response.data.code == 200){
             //拿到了用户的所有的信息，保存在pinia
@@ -155,7 +156,7 @@ export const updateStudentInfo_method = async (updatedFields: Record<string, any
     if(store.userInfo){
 
       //使用put请求，只发送更新过的字段
-      const response = await apiClient.put(`api/${identity}/update/${store.userInfo.studentNumber}`, updatedFields);
+      const response = await apiClient.put(`${identity}/update/${store.userInfo.studentNumber}`, updatedFields);
 
       if (response.data.code == 200){
         ElMessage.success(response.data.message);
