@@ -164,6 +164,9 @@ export const updateStudentInfo_method = async (updatedFields: Record<string, any
         // 更新成功后，同步更新 Pinia 中的状态
         const newInfo = { ...store.userInfo, ...updatedFields };
         store.saveStudentInfo(newInfo);
+
+        //刷新信息
+        getStudentInfo_method();
       }
       else {
         ElMessage.error(response.data.message);
