@@ -150,6 +150,10 @@ const handleSave = async () => {
   try {
     // 调用更新方法，只传递包含已更改字段的对象
     // 成功/失败的消息和 store 的更新已在 axios.ts 中统一处理
+    
+    //添加学生的id
+    changedFields.id = store.userInfo.id;
+    //发送数据
     await updateStudentInfo_method(changedFields);
   } finally {
     // 无论请求成功与否，都重置编辑状态并关闭对话框
