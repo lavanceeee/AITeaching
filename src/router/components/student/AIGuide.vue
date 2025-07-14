@@ -204,12 +204,7 @@ const processStream = async (stream) => {
   let tempMemoryId = '';
   let tempTitle = '';
 
-  // 创建一个空的AI消息占位符，后续将通过action向其追加内容
-  aiChatStore.addMessage({
-      id: Date.now(),
-      role: 'ai',
-      text: ''
-  });
+  // 不再预先创建AI消息占位符，将由Store的action在收到第一块数据时自动创建
 
   while (true) {
     const { done, value } = await reader.read();
@@ -230,11 +225,14 @@ const processStream = async (stream) => {
       
       const data = line.substring(6);
       if (data.startsWith('[MEMORY_ID:')) {
-        tempMemoryId = data.match(/\[MEMORY_ID:(.*?)\]/)[1];
+        const match = data.match(/\[MEMORY_ID:(.*?)\]/);
+        if (match) tempMemoryId = match[1];
       } else if (data.startsWith('[TITLE:')) {
-        tempTitle = data.match(/\[TITLE:(.*?)\]/)[1];
+        const match = data.match(/\[TITLE:(.*?)\]/);
+        if (match) tempTitle = match[1];
       } else if (data !== '[AiMessageStart]' && data.trim()) {
-        // 直接调用Store Action来更新消息，更安全、更内聚
+        // 直接调用Store Action来更新消息。
+        // action内部的逻辑会判断：如果是第一块AI文本，则创建新消息；否则，追加到上一条消息。
         aiChatStore.appendAiMessageChunk(data);
       }
     }
