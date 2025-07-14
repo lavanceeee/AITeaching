@@ -1,5 +1,5 @@
 <template>
-  <div class="settings-view" v-if="userInfo">
+  <div class="settings-view">
     <!-- General Settings -->
     <div class="settings-section">
       <h2 class="section-title">通用设置</h2>
@@ -19,7 +19,7 @@
       </div>
       <div class="profile-card">
         <div class="profile-info">
-          <el-avatar :size="48" :src="userInfo.avatar" />
+          <el-avatar :size="48" :src="userInfo.avatar"/>
           <div class="info-text">
             <span class="profile-name">{{ userInfo.username }}</span>
             <span class="profile-detail">学号: {{ userInfo.studentNumber }}</span>
@@ -60,7 +60,7 @@
             <div class="detail-category">
               <h4>基础信息</h4>
               <div class="detail-item"><span>真实姓名</span><span>{{ userInfo.realName }}</span></div>
-              <div class="detail-item"><span>昵称</span><span>{{ userInfo.nickname || '未设置' }}</span></div>
+              <div class="detail-item"><span>昵称</span><span>{{ userInfo.nickname }}</span></div>
               <div class="detail-item"><span>性别</span><span>{{ formatGender(userInfo.gender) }}</span></div>
               <div class="detail-item"><span>生日</span><span>{{ formatDate(userInfo.birthday) }}</span></div>
               <div class="detail-item"><span>身份证号</span><span>{{ userInfo.idCard }}</span></div>
@@ -70,7 +70,7 @@
             <div class="detail-category">
               <h4>联系方式</h4>
               <div class="detail-item"><span>邮箱</span><span>{{ userInfo.email }}</span></div>
-              <div class="detail-item"><span>手机号</span><span>{{ userInfo.phone || '未设置' }}</span></div>
+              <div class="detail-item"><span>手机号</span><span>{{ userInfo.phone}}</span></div>
             </div>
 
             <!-- Academic Info -->
@@ -82,7 +82,7 @@
               <div class="detail-item"><span>专业</span><span>{{ userInfo.major }}</span></div>
               <div class="detail-item"><span>班级</span><span>{{ userInfo.className }}</span></div>
               <div class="detail-item"><span>入学日期</span><span>{{ formatDate(userInfo.enrollmentDate) }}</span></div>
-              <div class="detail-item"><span>毕业日期</span><span>{{ formatDate(userInfo.graduationDate) || '未毕业' }}</span></div>
+              <div class="detail-item"><span>毕业日期</span><span>{{ formatDate(userInfo.graduationDate) }}</span></div>
             </div>
 
              <!-- Bio -->
@@ -96,9 +96,9 @@
     </div>
 
   </div>
-  <div v-else class="loading-state">
+  <!-- <div v-else class="loading-state">
     <p>正在加载用户信息...</p>
-  </div>
+  </div> -->
   
   <!-- Update Info Dialog -->
   <UpdateInfo v-model:visible="isUpdateInfoVisible" />

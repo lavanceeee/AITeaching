@@ -93,7 +93,7 @@ const store = useStudentInfoStore();
 // 使用 computed 来确保数据是响应式的
 const studentNumber = computed(() => store.userInfo?.studentNumber || 'N/A');
 const major = computed(() => store.userInfo?.major || 'N/A');
-const avatarUrl = computed(() => store.userInfo?.avatar);
+const avatarUrl = computed(() => store.userInfo?.avatar || 'https://pic.616pic.com/ys_bnew_img/00/42/51/nLWA3fYywP.jpg');
 
 
 //加载钩子发送信息请求

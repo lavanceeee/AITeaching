@@ -1,31 +1,51 @@
-import {defineStore} from 'pinia'
+import { defineStore } from 'pinia'
 
 // 定义用户信息的接口
 interface UserInfo {
-  id: number;   
-  avatar: string;
-  username: string;
-  nickname?: string;
-  email: string;
-  phone?: string;
-  gender?: number;
-  birthday?: string;
-  bio?: string;
-  studentNumber: string;
-  realName: string;
-  idCard: string;
-  grade: string;
-  major: string;
-  className: string;
-  school: string;
-  college: string;
-  enrollmentDate: string;
-  graduationDate?: string;
+    id: number;
+    avatar: string;
+    username: string;
+    nickname: string;
+    email: string;
+    phone: string;
+    gender: number;
+    birthday: string;
+    bio: string;
+    studentNumber: string;
+    realName: string;
+    idCard: string;
+    grade: string;
+    major: string;
+    className: string;
+    school: string;
+    college: string;
+    enrollmentDate: string;
+    graduationDate: string;
 }
 
 export const useStudentInfoStore = defineStore('studentInfo', {
-    state: (): { userInfo: UserInfo | null } => ({
-        userInfo: null
+    state: (): { userInfo: UserInfo } => ({
+        userInfo: {
+            id: 0,
+            avatar: "https://pic.616pic.com/ys_bnew_img/00/42/51/nLWA3fYywP.jpg",
+            username: "",
+            nickname: "",
+            email: "",
+            phone: "",
+            studentNumber: "",
+            realName: "",
+            idCard: "",
+            gender: 0,
+            birthday: "",
+            bio: "",
+            grade: "",
+            major: "",
+            className: "",
+            school: "",
+            college: "",
+            enrollmentDate: "",
+            graduationDate: "",
+        }
     }),
 
     actions: {
@@ -33,13 +53,33 @@ export const useStudentInfoStore = defineStore('studentInfo', {
             this.userInfo = info
         },
         clearStudentInfo() {
-            this.userInfo = null;
+            this.userInfo = {
+                id: 0,
+                avatar: "https://pic.616pic.com/ys_bnew_img/00/42/51/nLWA3fYywP.jpg",
+                username: "",
+                nickname: "",
+                email: "",
+                phone: "",
+                studentNumber: "",
+                realName: "",
+                idCard: "",
+                gender: 0,
+                birthday: "",
+                bio: "",
+                grade: "",
+                major: "",
+                className: "",
+                school: "",
+                college: "",
+                enrollmentDate: "",
+                graduationDate: "",
+            };
         },
         //测试使用学生信息
         setTestInfo() {
             this.userInfo = {
                 id: 1,
-                avatar: "https://cube.elemecdn.com/0/88/03b0d39583f487b27c8284e9683bdpl.png",
+                avatar: "https://pic.616pic.com/ys_bnew_img/00/42/51/nLWA3fYywP.jpg",
                 username: "student_test_001",
                 nickname: "测试小明",
                 email: "test_student@example.com",
