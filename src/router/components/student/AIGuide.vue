@@ -161,20 +161,23 @@
 import { ref, onMounted, computed } from "vue";
 import { useStudentInfoStore } from "../../../store/studentInfoStore";
 import { useAIChatStore } from "../../../store/AIChatStore";
-import { storeToRefs } from "pinia";
 import { streamChat_method, createConversation_method } from "../../../api/axios";
 
+// --- Stores ---
 const studentStore = useStudentInfoStore();
 const userInfo = computed(() => studentStore.userInfo);
-
-// AI Chat Store
+// AI Store仅用于会话成功后保存元数据
 const aiChatStore = useAIChatStore();
-const { messages, memoryId, isReceiving } = storeToRefs(aiChatStore);
+
+// --- 本地核心状态，不再依赖Pinia管理实时消息 ---
+const messages = ref([]);
+const isReceiving = ref(false);
+const memoryId = ref(null);
+const userInput = ref('');
 
 
 const floatingHeaderRef = ref(null);
 const hoverBgRef = ref(null);
-const userInput = ref('');
 
 // Model Selection
 const selectedModel = ref('tecent-yuanbao');
@@ -190,12 +193,21 @@ const handleModelChange = (command) => {
     selectedModel.value = command;
 };
 
-//新建会话
+// --- 核心功能实现 ---
+
+/**
+ * 新建会话：清空本地所有状态，并通知全局Store
+ */
 const createNewSession = () => {
-    aiChatStore.clearSession();
+    messages.value = [];
+    memoryId.value = null;
+    isReceiving.value = false;
+    aiChatStore.clearSession(); // 同步清空全局状态
 };
 
-//处理SSE流
+/**
+ * 直接处理流式响应，所有逻辑内聚于此
+ */
 const processStream = async (stream) => {
   const reader = stream.getReader();
   const decoder = new TextDecoder('utf-8');
@@ -203,55 +215,60 @@ const processStream = async (stream) => {
 
   let tempMemoryId = '';
   let tempTitle = '';
-
-  // 不再预先创建AI消息占位符，将由Store的action在收到第一块数据时自动创建
+  
+  let aiMessageId = null; // 用于追踪当前正在接收的AI消息气泡ID
 
   while (true) {
     const { done, value } = await reader.read();
-    if (done) {
-      break;
-    }
+    if (done) break;
     
-    // 将接收到的数据块解码成文本
-    const textChunk = decoder.decode(value, { stream: true });
-    partialLine += textChunk;
+    const chunk = decoder.decode(value, { stream: true });
+    partialLine += chunk;
     
-    // 按行分割处理
     const lines = partialLine.split('\n');
-    partialLine = lines.pop() || ''; // 最后一部分可能不完整，留到下次处理
+    partialLine = lines.pop() || '';
 
     for (const line of lines) {
       if (!line.startsWith('data: ')) continue;
       
-      const data = line.substring(6);
+      const data = line.substring(6).trim();
+
       if (data.startsWith('[MEMORY_ID:')) {
         const match = data.match(/\[MEMORY_ID:(.*?)\]/);
         if (match) tempMemoryId = match[1];
       } else if (data.startsWith('[TITLE:')) {
         const match = data.match(/\[TITLE:(.*?)\]/);
         if (match) tempTitle = match[1];
-      } else if (data !== '[AiMessageStart]' && data.trim()) {
-        // 直接调用Store Action来更新消息。
-        // action内部的逻辑会判断：如果是第一块AI文本，则创建新消息；否则，追加到上一条消息。
-        aiChatStore.appendAiMessageChunk(data);
+      } else if (data !== '[AiMessageStart]' && data) {
+        // 如果是第一块AI文本，则创建新的消息气泡
+        if (aiMessageId === null) {
+            aiMessageId = Date.now();
+            messages.value.push({ id: aiMessageId, role: 'ai', text: data });
+        } else {
+            // 否则，找到已创建的气泡并追加文本
+            const msg = messages.value.find(m => m.id === aiMessageId);
+            if (msg) {
+                msg.text += data;
+            }
+        }
       }
     }
   }
 
   // 流结束后，如果是新会话，则创建会话记录
   if (tempMemoryId && tempTitle && !memoryId.value) {
+    memoryId.value = tempMemoryId; // 更新本地 memoryId
     try {
-        // 按照新版API文档和后端要求，构建完整的参数
         const params = {
             title: tempTitle,
             memoryId: tempMemoryId,
             modelName: selectedModel.value,
-            tags: [], // 默认为空数组
-            enableRag: false, // 按要求设置为 false
-            courseId: null, // 按要求设置为空
+            enableRag: false,
+            courseId: null,
         };
         const response = await createConversation_method(params);
         if (response.data.code === 200) {
+            // 将最终成功的会话信息保存到全局Store
             aiChatStore.setConversationDetails({
                 conversationId: response.data.data.id,
                 memoryId: tempMemoryId,
@@ -264,17 +281,21 @@ const processStream = async (stream) => {
   }
 };
 
-//发消息按钮
+
+/**
+ * 发送消息总入口
+ */
 const sendMessage = async () => {
-    if (isReceiving.value) return; // 防止重复发送
+    if (isReceiving.value) return;
 
     const text = userInput.value.trim();
     if (!text) return;
 
-    aiChatStore.setReceiving(true);
-    aiChatStore.addMessage({
+    isReceiving.value = true;
+    messages.value.push({
         id: Date.now(),
-        sender: "user",
+        sender: "user", // sender 属性用于CSS样式区分
+        role: "user",    // role 属性用于逻辑判断
         text: text,
     });
     userInput.value = "";
@@ -287,16 +308,19 @@ const sendMessage = async () => {
 
         if (response.body) {
             await processStream(response.body);
+        } else {
+            throw new Error("响应体为空");
         }
     } catch (error) {
         console.error("流式请求失败:", error);
-        aiChatStore.addMessage({
+        messages.value.push({
             id: Date.now(),
+            sender: 'ai',
             role: 'ai',
             text: '网络错误，请稍后再试。'
         });
     } finally {
-        aiChatStore.setReceiving(false);
+        isReceiving.value = false;
     }
 };
 
