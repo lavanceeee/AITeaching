@@ -204,10 +204,9 @@ const processStream = async (stream) => {
   let tempMemoryId = '';
   let tempTitle = '';
 
-  // 创建一个空的AI消息占位符
-  const aiMessageId = Date.now();
+  // 创建一个空的AI消息占位符，后续将通过action向其追加内容
   aiChatStore.addMessage({
-      id: aiMessageId,
+      id: Date.now(),
       role: 'ai',
       text: ''
   });
@@ -234,12 +233,9 @@ const processStream = async (stream) => {
         tempMemoryId = data.match(/\[MEMORY_ID:(.*?)\]/)[1];
       } else if (data.startsWith('[TITLE:')) {
         tempTitle = data.match(/\[TITLE:(.*?)\]/)[1];
-      } else if (data !== '[AiMessageStart]') {
-        // 更新AI消息占位符的内容
-        const aiMessage = aiChatStore.messages.find(m => m.id === aiMessageId);
-        if (aiMessage) {
-            aiMessage.text += data;
-        }
+      } else if (data !== '[AiMessageStart]' && data.trim()) {
+        // 直接调用Store Action来更新消息，更安全、更内聚
+        aiChatStore.appendAiMessageChunk(data);
       }
     }
   }
