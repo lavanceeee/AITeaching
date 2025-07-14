@@ -188,28 +188,36 @@ export const updateStudentInfo_method = async (updatedFields: Record<string, any
 //fetchAPI 返回事件流
 export const streamChat_method = (params: { message: string, memoryId?: string }) => {
   const token = localStorage.getItem('token');
-  // 注意：这里我们直接返回 fetch 的 Promise
-  // fetch API 是处理流式响应（SSE）的标准方式
-  return fetch(`${BASE_URL}/api/ai/chat`, {
+  
+  const formData = new FormData();
+  formData.append('message', params.message);
+  // 后端要求 memoryId 为 0 或不传表示新对话
+  formData.append('memoryId', params.memoryId || '0'); 
+  
+  return fetch(`${BASE_URL}/ai/common/chat`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'text/event-stream', // 明确告诉服务器我们需要一个事件流
+      // 注意：当使用 FormData 作为 body 时，绝不可以手动设置 Content-Type。
+      // 浏览器会自动设置 Content-Type 为 'multipart/form-data' 并附加必要的 boundary。
+      'Accept': 'text/event-stream',
       'Authorization': `Bearer ${token}`
     },
-    body: JSON.stringify(params)
+    body: formData
   });
 };
 
 /**
  * 创建一个新的AI会话
- * @param params 包含title, memoryId, modelName等
+ * @param params 包含创建会话所需的所有参数
  */
 export const createConversation_method = async (params: {
   title: string;
   memoryId: string;
   modelName: string;
+  tags?: string[];
+  enableRag?: boolean;
+  courseId?: number | null;
 }) => {
   // 这里使用axios实例，因为它处理JSON响应和错误拦截更方便
-  return apiClient.post('/api/ai/conversation', params);
+  return apiClient.post('ai/conversation/create', params);
 };

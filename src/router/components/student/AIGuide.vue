@@ -247,10 +247,14 @@ const processStream = async (stream) => {
   // 流结束后，如果是新会话，则创建会话记录
   if (tempMemoryId && tempTitle && !memoryId.value) {
     try {
+        // 按照新版API文档和后端要求，构建完整的参数
         const params = {
             title: tempTitle,
             memoryId: tempMemoryId,
             modelName: selectedModel.value,
+            tags: [], // 默认为空数组
+            enableRag: false, // 按要求设置为 false
+            courseId: null, // 按要求设置为空
         };
         const response = await createConversation_method(params);
         if (response.data.code === 200) {
@@ -265,7 +269,6 @@ const processStream = async (stream) => {
     }
   }
 };
-
 
 //发消息按钮
 const sendMessage = async () => {

@@ -39,7 +39,6 @@ export const useAIChatStore = defineStore('AIChat', {
 
         /**
          * 向最新的AI消息追加文本块，实现打字机效果
-         * 如果不存在AI消息，则会创建一个
          * @param textChunk AI返回的文本片段
          */
         appendAiMessageChunk(textChunk: string) {
