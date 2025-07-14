@@ -243,7 +243,8 @@ const processStream = async (stream) => {
         // 如果是第一块AI文本，则创建新的消息气泡
         if (aiMessageId === null) {
             aiMessageId = Date.now();
-            messages.value.push({ id: aiMessageId, role: 'ai', text: data });
+            //添加AI的sender标识
+            messages.value.push({ id: aiMessageId, sender: 'ai',role: 'ai', text: data });
         } else {
             // 否则，找到已创建的气泡并追加文本
             const msg = messages.value.find(m => m.id === aiMessageId);
