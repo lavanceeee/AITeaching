@@ -135,6 +135,7 @@
             </svg>
           </button>
 
+          <!-- 发送消息Button -->
           <button class="send-button" @click="sendMessage">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -159,14 +160,21 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useStudentInfoStore } from "../../../store/studentInfoStore";
+import { useAIChatStore } from "../../../store/AIChatStore";
+import { storeToRefs } from "pinia";
+import { streamChat_method, createConversation_method } from "../../../api/axios";
 
-const store = useStudentInfoStore();
-const userInfo = computed(() => store.userInfo);
+const studentStore = useStudentInfoStore();
+const userInfo = computed(() => studentStore.userInfo);
+
+// AI Chat Store
+const aiChatStore = useAIChatStore();
+const { messages, memoryId, isReceiving } = storeToRefs(aiChatStore);
+
 
 const floatingHeaderRef = ref(null);
 const hoverBgRef = ref(null);
 const userInput = ref('');
-const messages = ref([]);
 
 // Model Selection
 const selectedModel = ref('tecent-yuanbao');
@@ -182,17 +190,117 @@ const handleModelChange = (command) => {
     selectedModel.value = command;
 };
 
-const sendMessage = () => {
+//新建会话
+const createNewSession = () => {
+    aiChatStore.clearSession();
+};
+
+//处理SSE流
+const processStream = async (stream) => {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let partialLine = '';
+
+  let tempMemoryId = '';
+  let tempTitle = '';
+
+  // 创建一个空的AI消息占位符
+  const aiMessageId = Date.now();
+  aiChatStore.addMessage({
+      id: aiMessageId,
+      role: 'ai',
+      text: ''
+  });
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    
+    // 将接收到的数据块解码成文本
+    const textChunk = decoder.decode(value, { stream: true });
+    partialLine += textChunk;
+    
+    // 按行分割处理
+    const lines = partialLine.split('\n');
+    partialLine = lines.pop() || ''; // 最后一部分可能不完整，留到下次处理
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      
+      const data = line.substring(6);
+      if (data.startsWith('[MEMORY_ID:')) {
+        tempMemoryId = data.match(/\[MEMORY_ID:(.*?)\]/)[1];
+      } else if (data.startsWith('[TITLE:')) {
+        tempTitle = data.match(/\[TITLE:(.*?)\]/)[1];
+      } else if (data !== '[AiMessageStart]') {
+        // 更新AI消息占位符的内容
+        const aiMessage = aiChatStore.messages.find(m => m.id === aiMessageId);
+        if (aiMessage) {
+            aiMessage.text += data;
+        }
+      }
+    }
+  }
+
+  // 流结束后，如果是新会话，则创建会话记录
+  if (tempMemoryId && tempTitle && !memoryId.value) {
+    try {
+        const params = {
+            title: tempTitle,
+            memoryId: tempMemoryId,
+            modelName: selectedModel.value,
+        };
+        const response = await createConversation_method(params);
+        if (response.data.code === 200) {
+            aiChatStore.setConversationDetails({
+                conversationId: response.data.data.id,
+                memoryId: tempMemoryId,
+                title: tempTitle,
+            });
+        }
+    } catch (error) {
+        console.error("创建会话失败:", error);
+    }
+  }
+};
+
+
+//发消息按钮
+const sendMessage = async () => {
+    if (isReceiving.value) return; // 防止重复发送
+
     const text = userInput.value.trim();
     if (!text) return;
 
-  messages.value.push({
-    id: Date.now(),
-    sender: "user",
-    text: text,
-  });
+    aiChatStore.setReceiving(true);
+    aiChatStore.addMessage({
+        id: Date.now(),
+        sender: "user",
+        text: text,
+    });
+    userInput.value = "";
 
-  userInput.value = "";
+    try {
+        const response = await streamChat_method({
+            message: text,
+            memoryId: memoryId.value,
+        });
+
+        if (response.body) {
+            await processStream(response.body);
+        }
+    } catch (error) {
+        console.error("流式请求失败:", error);
+        aiChatStore.addMessage({
+            id: Date.now(),
+            role: 'ai',
+            text: '网络错误，请稍后再试。'
+        });
+    } finally {
+        aiChatStore.setReceiving(false);
+    }
 };
 
 onMounted(() => {

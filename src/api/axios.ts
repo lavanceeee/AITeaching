@@ -184,3 +184,32 @@ export const updateStudentInfo_method = async (updatedFields: Record<string, any
     throw error;
   }
 }
+
+//fetchAPI 返回事件流
+export const streamChat_method = (params: { message: string, memoryId?: string }) => {
+  const token = localStorage.getItem('token');
+  // 注意：这里我们直接返回 fetch 的 Promise
+  // fetch API 是处理流式响应（SSE）的标准方式
+  return fetch(`${BASE_URL}/api/ai/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream', // 明确告诉服务器我们需要一个事件流
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(params)
+  });
+};
+
+/**
+ * 创建一个新的AI会话
+ * @param params 包含title, memoryId, modelName等
+ */
+export const createConversation_method = async (params: {
+  title: string;
+  memoryId: string;
+  modelName: string;
+}) => {
+  // 这里使用axios实例，因为它处理JSON响应和错误拦截更方便
+  return apiClient.post('/api/ai/conversation', params);
+};
