@@ -158,9 +158,7 @@ const handleCancel = () => {
 
 const handleAvatarSuccess = (response, uploadFile) => {
   editableInfo.avatar = Image_URL + response.data.fileUrl;
-  store.userInfo.avatar = editableInfo.avatar;
-  // TODO: 上传头像地址以更新学生数据
-  ElMessage.success('头像上传成功！');
+  ElMessage.success('头像上传成功，点击保存后生效！');
 };
 
 const beforeAvatarUpload = (rawFile) => {
