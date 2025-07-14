@@ -21,7 +21,7 @@
         <div class="profile-info">
           <el-avatar :size="48" :src="userInfo.avatar"/>
           <div class="info-text">
-            <span class="profile-name">{{ userInfo.username }}</span>
+            <span class="profile-detail">姓名：{{ userInfo.username }}</span>
             <span class="profile-detail">学号: {{ userInfo.studentNumber }}</span>
           </div>
         </div>
@@ -230,11 +230,6 @@ const handleLogout = () => {
 .info-text {
   display: flex;
   flex-direction: column;
-}
-
-.profile-name {
-  font-size: 1rem;
-  font-weight: 500;
 }
 
 .profile-detail {
