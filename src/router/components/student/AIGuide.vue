@@ -154,68 +154,59 @@ const createNewSession = () => {
  * 使用 eventsource-parser 处理流式响应
  */
 const processStream = async (stream) => {
-  console.log("开始处理流:", stream);
   let tempMemoryId = '';
   let tempTitle = '';
   let aiMessageId = null; // 用于追踪当前正在接收的AI消息气泡ID
-  let isCollectingMessage = false; // 标记是否正在收集AI消息
 
   const onParse = (event) => {
-    // 根据最新的文档，我们直接处理 `event`，不再检查 `event.type`
     const data = event.data;
-    if (data === undefined) {
-      // 忽略没有数据的事件
+    if (data === undefined || data === '[DONE]') {
+      // 忽略没有数据或结束标记的事件
       return;
     }
 
-    console.log(`%c[SSE Parser] Data: ${data}`, 'color: #2e9599; font-weight: bold;');
-
-    // The parser will handle JSON parsing if the data is a valid JSON string.
-    // Here, we handle our custom string-based protocol.
+    // 1. 处理元数据（仅限新对话），然后跳过
     if (data.startsWith('[MEMORY_ID:')) {
-      console.log("收到内存ID:", data);
       const match = data.match(/\[MEMORY_ID:(.*?)\]/);
-      if (match) {
-        tempMemoryId = match[1];
-        console.log("提取到记忆ID:", tempMemoryId);
-      }
-    } else if (data.startsWith('[TITLE:')) {
+      if (match) tempMemoryId = match[1];
+      return;
+    }
+    if (data.startsWith('[TITLE:')) {
       const match = data.match(/\[TITLE:(.*?)\]/);
-      if (match) {
-        tempTitle = match[1];
-        console.log("提取到标题:", tempTitle);
-      }
-    } else if (data === '[AiMessageStart]') {
-      console.log("AI消息开始标记");
-      // 当收到AI消息开始标记时，创建一个空的AI消息气泡
+      if (match) tempTitle = match[1];
+      return;
+    }
+
+    // 2. 忽略 [AiMessageStart] 标记本身，它只是一个开始信号
+    if (data === '[AiMessageStart]') {
+      return;
+    }
+
+    // 3. 收到第一个有效文本块时，创建AI消息气泡。
+    //    此逻辑对新对话和继续对话都通用。
+    if (aiMessageId === null) {
       aiMessageId = Date.now();
-      isCollectingMessage = true;
       messages.value.push({
         id: aiMessageId,
         sender: 'ai',
         role: 'ai',
-        text: ''
+        text: '' // 初始为空
       });
-      console.log("创建了新的AI消息气泡，ID:", aiMessageId);
-    } else if (isCollectingMessage && data !== '[DONE]' && data.trim()) {
-      console.log("收到AI文本片段:", data);
-      // 查找当前的AI消息气泡
-      const msgIndex = messages.value.findIndex(m => m.id === aiMessageId);
-      if (msgIndex !== -1) {
-        console.log("向现有气泡追加文本，索引:", msgIndex);
-        // 直接修改数组中的对象以确保Vue能检测到变化
-        messages.value[msgIndex].text += data;
-      } else {
-        console.error("找不到要追加文本的AI消息气泡:", aiMessageId);
-      }
+    }
+
+    // 4. 将文本块追加到已创建的气泡中
+    const msg = messages.value.find(m => m.id === aiMessageId);
+    if (msg) {
+      msg.text += data;
+    } else {
+      // 理论上不应该发生，因为我们已确保气泡的存在
+      console.error("Fatal: AI message bubble not found after creation.");
     }
   };
 
-  // Create a new parser instance for each stream
-  // According to the latest library version, we must pass an object of callbacks.
+  // 根据最新的库版本，我们必须传递一个回调对象
   const parser = createParser({
     onEvent: onParse,
-    // (Optional) You can add other callbacks here if needed
     onError: (err) => console.error('SSE Parser Error:', err),
   });
 
@@ -223,51 +214,43 @@ const processStream = async (stream) => {
   const decoder = new TextDecoder('utf-8');
 
   try {
-    console.log("开始读取流");
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
-        console.log("流读取完成");
         break;
       }
       const chunk = decoder.decode(value, { stream: true });
-      console.log("收到原始数据块:", chunk);
-      parser.feed(chunk); // Feed the chunk directly to the parser
+      parser.feed(chunk); // 将数据块喂给解析器
     }
   } finally {
-    console.log("清理流资源");
     reader.releaseLock();
-    parser.reset(); // Clean up the parser state
+    parser.reset(); // 清理并重置解析器状态
   }
 
-  // After the stream ends, if it was a new session, create the conversation record.
+  // 流结束后，如果是新会话，则创建会话记录
   if (tempMemoryId && tempTitle && !memoryId.value) {
-    console.log("准备创建会话记录:", { tempMemoryId, tempTitle });
-    memoryId.value = tempMemoryId; // Update the local memoryId
+    memoryId.value = tempMemoryId; // 更新本地 memoryId
     try {
-      const params = {
-        title: tempTitle,
-        memoryId: tempMemoryId,
-        modelName: selectedModel.value,
-        enableRag: false,
-        courseId: null,
-      };
-      console.log("创建会话参数:", params);
-      const response = await createConversation_method(params);
-      console.log("创建会话响应:", response);
-      if (response.data.code === 200) {
-        // Save the successful conversation info to the global store
-        aiChatStore.setConversationDetails({
-          conversationId: response.data.data.id,
-          memoryId: tempMemoryId,
+        const params = {
           title: tempTitle,
-        });
-        console.log("会话信息已保存到全局Store");
+          memoryId: tempMemoryId,
+          modelName: selectedModel.value,
+          enableRag: false,
+          courseId: null,
+        };
+        const response = await createConversation_method(params);
+        if (response.data.code === 200) {
+          // Save the successful conversation info to the global store
+          aiChatStore.setConversationDetails({
+            conversationId: response.data.data.id,
+            memoryId: tempMemoryId,
+            title: tempTitle,
+          });
+        }
+      } catch (error) {
+        console.error("创建会话失败:", error);
       }
-    } catch (error) {
-      console.error("创建会话失败:", error);
     }
-  }
 };
 
 

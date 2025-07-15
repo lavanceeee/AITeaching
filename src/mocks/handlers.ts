@@ -31,6 +31,14 @@ export const handlers = [
     
     console.log('MSW: 接收到聊天请求', { message, memoryId });
 
+    //判断继续对话
+    if (memoryId !== '0') {
+        console.log('MSW: 继续对话');
+    } else {
+        console.log('MSW: 新对话');
+    }
+
+    
     // 创建真实的SSE流
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
