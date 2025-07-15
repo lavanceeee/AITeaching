@@ -173,7 +173,7 @@ const handleSelectConversation = async () => {
     // 1. 调用API获取该会话的完整消息列表
     const historyMessages = await getConversationMessages_method();
 
-    if (historyMessages && historyMessages.length > 0) {
+    if (historyMessages) {
       // 2. 将API返回的数据 `map` 成UI需要的格式
       messages.value = historyMessages.map(msg => ({
         id: msg.id,
@@ -195,7 +195,7 @@ const handleSelectConversation = async () => {
         id: Date.now(),
         sender: 'ai',
         role: 'ai',
-        text: `会话 "${conversation.title}" 已加载，但没有历史消息。`,
+        text: "会话已加载，但没有历史消息。",
       }];
     }
   } catch (error) {
