@@ -167,12 +167,11 @@ const openHistoryDialog = () => {
  * 从历史记录中选择一个会话并加载其内容
  * @param {object} conversation - 包含id, title等信息的会话对象
  */
-const handleSelectConversation = async (conversation) => {
-  console.log("即将加载会话:", conversation);
+const handleSelectConversation = async () => {
 
   try {
     // 1. 调用API获取该会话的完整消息列表
-    const historyMessages = await getConversationMessages_method(conversation.id);
+    const historyMessages = await getConversationMessages_method();
 
     if (historyMessages && historyMessages.length > 0) {
       // 2. 将API返回的数据 `map` 成UI需要的格式
@@ -186,9 +185,9 @@ const handleSelectConversation = async (conversation) => {
         text: msg.content,
       }));
 
-      // (可选) 更新全局store和本地状态
-      aiChatStore.setConversationDetails(conversation);
-      memoryId.value = conversation.memoryId;
+      // // (可选) 更新全局store和本地状态
+      // aiChatStore.setConversationDetails(conversation);
+      // memoryId.value = conversation.memoryId;
 
     } else {
       // 如果没有历史消息，给一个提示
