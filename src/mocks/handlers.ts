@@ -185,4 +185,58 @@ export const handlers = [
       },
     });
   }),
+
+  // Mock for fetching all ordered messages for a conversation
+  // Corresponds to API Spec 3.5: GET /api/ai/message/conversation/{conversationId}/ordered
+  http.get(`${API_PREFIX}/ai/message/conversation/:conversationId/ordered`, ({ params }) => {
+    const { conversationId } = params;
+
+    console.log(`MSW: 拦截到获取会话 ${conversationId} 的完整消息列表请求`);
+
+    // Generate a list of mock messages for this conversation
+    const mockMessages = [
+      {
+        id: 101,
+        conversationId: conversationId,
+        messageType: 0, // 0 for user
+        messageTypeDesc: "用户消息",
+        content: "你好，这个会话是从历史记录加载的吗？",
+        sequence: 1,
+        createBy: 1,
+        createByName: "测试用户",
+        createTime: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+        updateTime: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 102,
+        conversationId: conversationId,
+        messageType: 1, // 1 for AI
+        messageTypeDesc: "AI消息",
+        content: "是的，我是由MSW模拟接口返回的一段历史消息。这证明获取历史消息的API调用已经成功了。",
+        sequence: 2,
+        createBy: null,
+        createByName: "AI助手",
+        createTime: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
+        updateTime: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 103,
+        conversationId: conversationId,
+        messageType: 0,
+        messageTypeDesc: "用户消息",
+        content: "太好了！这样我们就可以继续之前的对话了。",
+        sequence: 3,
+        createBy: 1,
+        createByName: "测试用户",
+        createTime: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
+        updateTime: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
+      },
+    ];
+
+    return HttpResponse.json({
+      code: 200,
+      message: `获取会话 ${conversationId} 历史成功 (MSW)`,
+      data: mockMessages,
+    });
+  }),
 ] 

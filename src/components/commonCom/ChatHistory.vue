@@ -107,7 +107,7 @@ const handlePageChange = (newPage) => {
   fetchHistory();
 };
 
-const selectConversation = (id) => {
+const selectConversation = async (id) => {
   console.log("即将加载会话:", id);
   emit('select-conversation', id); 
   dialogVisible.value = false;
@@ -122,7 +122,9 @@ const selectConversation = (id) => {
       title: conversation.title
     });
 
-    //获取当前消息的所有聊天历史
+    // //获取当前消息的所有聊天历史
+    // const history = await getConversationHistory_method();
+    
     
   }
 };

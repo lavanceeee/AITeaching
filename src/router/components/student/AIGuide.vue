@@ -107,7 +107,12 @@
 import { ref, onMounted, computed, onBeforeUnmount } from "vue";
 import { useStudentInfoStore } from "../../../store/studentInfoStore";
 import { useAIChatStore } from "../../../store/AIChatStore";
-import { streamChat_method, createConversation_method, batchCreateMessages_method } from "../../../api/axios";
+import { 
+  streamChat_method, 
+  createConversation_method, 
+  batchCreateMessages_method,
+  getConversationMessages_method
+} from "../../../api/axios";
 import { createParser } from 'eventsource-parser';
 import ChatHistory from '../../../components/commonCom/ChatHistory.vue';
 import { batchSend } from "../../../utils/batchsend";
@@ -159,12 +164,45 @@ const openHistoryDialog = () => {
 };
 
 /**
- * 从历史记录中选择一个会话
- * @param {string} conversationId
+ * 从历史记录中选择一个会话并加载其内容
+ * @param {object} conversation - 包含id, title等信息的会话对象
  */
-const handleSelectConversation = (conversationId) => {
-  console.log("即将加载会话:", conversationId);
-  // 未来在此实现加载会话的逻辑
+const handleSelectConversation = async (conversation) => {
+  console.log("即将加载会话:", conversation);
+
+  try {
+    // 1. 调用API获取该会话的完整消息列表
+    const historyMessages = await getConversationMessages_method(conversation.id);
+
+    if (historyMessages && historyMessages.length > 0) {
+      // 2. 将API返回的数据 `map` 成UI需要的格式
+      messages.value = historyMessages.map(msg => ({
+        id: msg.id,
+        // 根据 messageType 判断发送者
+        sender: msg.messageType === 0 ? 'user' : 'ai',
+        // role 也同样判断
+        role: msg.messageType === 0 ? 'user' : 'ai',
+        // text 直接使用 content
+        text: msg.content,
+      }));
+
+      // (可选) 更新全局store和本地状态
+      aiChatStore.setConversationDetails(conversation);
+      memoryId.value = conversation.memoryId;
+
+    } else {
+      // 如果没有历史消息，给一个提示
+      messages.value = [{
+        id: Date.now(),
+        sender: 'ai',
+        role: 'ai',
+        text: `会话 "${conversation.title}" 已加载，但没有历史消息。`,
+      }];
+    }
+  } catch (error) {
+    console.error("加载历史消息失败:", error);
+    // 可以在这里用 ElMessage 提示用户
+  }
 };
 
 

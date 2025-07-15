@@ -33,6 +33,10 @@ export const useAIChatStore = defineStore('AIChat', {
             this.conversationId = null;
             this.memoryId = null;
             this.title = null;
+        },
+
+        getConversationId() {
+            return this.conversationId;
         }
     }
 })

@@ -283,14 +283,25 @@ export const batchCreateMessages_method = async (params: {
 }
 
 
-// export const getConversationHistory_method = async (params) => {
-//   try {
-//     const store = useAIChatStore;
-//     const conversationId = params.conversationId;
-//     if (conversationId) {
-//       const response = await apiClient.get(`/ai/message/conversation`)
-    
-//     }
-    
-//   }
-// }
+/**
+ * 根据会话ID，获取该会话的所有消息记录
+ * @param conversationId 会话ID
+ */
+export const getConversationMessages_method = async (conversationId: number) => {
+  try {
+    // API文档3.5: GET /api/ai/message/conversation/{conversationId}/ordered
+    const response = await apiClient.get(`/ai/message/conversation/${conversationId}/ordered`);
+
+    if (response.data.code === 200) {
+      console.log("获取到会话历史:", response.data.data);
+      return response.data.data;
+    } else {
+      ElMessage.error(response.data.message);
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    ElMessage.error(`获取会话历史失败: ${errorMessage}`);
+    throw error;
+  }
+}
