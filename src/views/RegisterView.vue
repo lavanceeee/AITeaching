@@ -65,7 +65,7 @@
             </div>
           </el-card>
           
-          <!-- 右侧卡片：学生个人信息 -->
+          <!-- 右侧卡片：个人信息 -->
           <el-card class="info-card right-card">
             <div class="card-header">
               <el-icon><User /></el-icon>
@@ -75,7 +75,10 @@
             <!-- 身份选择器移到此处 -->
             <div class="identity-selector-container">
               <div class="identity-label">选择身份</div>
-              <div class="identity-selector">
+              <div 
+                class="identity-selector"
+                :class="{ 'teacher': selectedIdentity === 'teacher' }"
+              >
                 <div 
                   v-for="option in identityOptions"
                   :key="option.value"
@@ -92,53 +95,107 @@
               </div>
             </div>
             
-            <el-form-item prop="school" label="学校">
-              <el-select
-                v-model="formData.school"
-                filterable
-                placeholder="请选择学校"
-                class="full-width"
-              >
-                <el-option
-                  v-for="item in schoolOptions"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </el-form-item>
-            
-            <el-form-item prop="major" label="专业">
-              <el-select
-                v-model="formData.major"
-                filterable
-                placeholder="请选择专业"
-                class="full-width"
-              >
-                <el-option
-                  v-for="item in majorOptions"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </el-form-item>
-            
-            <el-form-item prop="studentNumber" label="学号">
-              <el-input 
-                v-model="formData.studentNumber" 
-                placeholder="请输入学号"
-                prefix-icon="DocumentCopy"
-              />
-            </el-form-item>
-            
-            <el-form-item prop="className" label="班级">
-              <el-input 
-                v-model="formData.className" 
-                placeholder="请输入班级"
-                prefix-icon="School"
-              />
-            </el-form-item>
+            <!-- 使用transition-group为表单项添加动画效果 -->
+            <transition-group 
+              name="form-fields" 
+              tag="div" 
+              class="form-fields-container"
+              mode="out-in"
+            >
+              <!-- 学生特有字段 -->
+              <template v-if="selectedIdentity === 'student'">
+                <el-form-item key="school-student" prop="school" label="学校">
+                  <el-select
+                    v-model="formData.school"
+                    filterable
+                    placeholder="请选择学校"
+                    class="full-width"
+                  >
+                    <el-option
+                      v-for="item in schoolOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+                
+                <el-form-item key="major" prop="major" label="专业">
+                  <el-select
+                    v-model="formData.major"
+                    filterable
+                    placeholder="请选择专业"
+                    class="full-width"
+                  >
+                    <el-option
+                      v-for="item in majorOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+                
+                <el-form-item key="studentNumber" prop="studentNumber" label="学号">
+                  <el-input 
+                    v-model="formData.studentNumber" 
+                    placeholder="请输入学号"
+                    prefix-icon="DocumentCopy"
+                  />
+                </el-form-item>
+                
+                <el-form-item key="className" prop="className" label="班级">
+                  <el-input 
+                    v-model="formData.className" 
+                    placeholder="请输入班级"
+                    prefix-icon="School"
+                  />
+                </el-form-item>
+              </template>
+              
+              <!-- 教师特有字段 -->
+              <template v-else-if="selectedIdentity === 'teacher'">
+                <el-form-item key="teacherNumber" prop="teacherNumber" label="教师工号">
+                  <el-input 
+                    v-model="formData.teacherNumber" 
+                    placeholder="请输入教师工号"
+                    prefix-icon="DocumentCopy"
+                  />
+                </el-form-item>
+                
+                <el-form-item key="realName" prop="realName" label="真实姓名">
+                  <el-input 
+                    v-model="formData.realName" 
+                    placeholder="请输入真实姓名"
+                    prefix-icon="User"
+                  />
+                </el-form-item>
+                
+                <el-form-item key="idCard" prop="idCard" label="身份证号">
+                  <el-input 
+                    v-model="formData.idCard" 
+                    placeholder="请输入身份证号"
+                    prefix-icon="Postcard"
+                  />
+                </el-form-item>
+                
+                <el-form-item key="school-teacher" prop="school" label="所属学校">
+                  <el-select
+                    v-model="formData.school"
+                    filterable
+                    placeholder="请选择学校"
+                    class="full-width"
+                  >
+                    <el-option
+                      v-for="item in schoolOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+              </template>
+            </transition-group>
           </el-card>
         </div>
       </el-form>
@@ -160,7 +217,8 @@ import {
   Avatar, 
   Reading, 
   MagicStick,
-  User
+  User,
+  Postcard
 } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { register_method } from '../api/axios';
@@ -177,7 +235,10 @@ const formData = reactive({
   school: '',
   major: '',
   studentNumber: '',
-  className: ''
+  className: '',
+  teacherNumber: '',
+  realName: '',
+  idCard: ''
 });
 
 // 表单校验规则
@@ -200,6 +261,20 @@ const validatePass2 = (rule: any, value: string, callback: any) => {
     callback(new Error('两次输入密码不一致!'));
   } else {
     callback();
+  }
+};
+
+// 身份证号码验证
+const validateIdCard = (rule: any, value: string, callback: any) => {
+  if (value === '') {
+    callback(new Error('请输入身份证号码'));
+  } else {
+    const reg = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
+    if (reg.test(value)) {
+      callback();
+    } else {
+      callback(new Error('请输入正确的身份证号码'));
+    }
   }
 };
 
@@ -227,6 +302,17 @@ const rules = reactive<FormRules>({
   ],
   className: [
     { required: true, message: '请输入班级', trigger: 'blur' }
+  ],
+  // 教师相关字段验证
+  teacherNumber: [
+    { required: true, message: '请输入教师工号', trigger: 'blur' }
+  ],
+  realName: [
+    { required: true, message: '请输入真实姓名', trigger: 'blur' },
+    { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+  ],
+  idCard: [
+    { required: true, validator: validateIdCard, trigger: 'blur' }
   ],
   password: [
     { required: true, validator: validatePass, trigger: 'blur' },
@@ -282,7 +368,15 @@ const selectedIdentity = ref("student");
 
 // 选择身份的方法
 const selectIdentity = (identity: string) => {
+  // 如果点击的是当前已选身份，不做任何操作
+  if (selectedIdentity.value === identity) return;
+  
   selectedIdentity.value = identity;
+  
+  // 重置表单验证
+  if (registerForm.value) {
+    registerForm.value.clearValidate();
+  }
 };
 
 // 注册方法
@@ -390,6 +484,27 @@ const goToLogin = () => {
   border-radius: 6px;
   padding: 0.5rem;
   border: 1px solid #e4e7ed;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 身份选择器动画增强 */
+.identity-selector::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background-color: #409eff;
+  border-radius: 4px;
+  z-index: 1;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translateX(0);
+}
+
+.identity-selector.teacher::before {
+  transform: translateX(100%);
 }
 
 .identity-option {
@@ -399,23 +514,42 @@ const goToLogin = () => {
   padding: 0.8rem;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   color: #606266;
   flex: 1;
+  position: relative;
+  z-index: 2;
+  background-color: transparent;
 }
 
 .identity-option.active {
-  background-color: #409eff;
   color: white;
+  transform: scale(1.05);
 }
 
 .identity-option .el-icon {
-  font-size: 20px;
-  margin-bottom: 0.4rem;
+  font-size: 22px;
+  margin-bottom: 0.5rem;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.identity-option:hover .el-icon {
+  transform: scale(1.1) translateY(-2px);
+}
+
+.identity-option.active .el-icon {
+  transform: scale(1.2);
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
 }
 
 .identity-option span {
   font-weight: 500;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.identity-option.active span {
+  font-weight: 600;
 }
 
 .register-form {
@@ -463,11 +597,13 @@ const goToLogin = () => {
   border-radius: 4px;
   background-color: #409eff;
   border: none;
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
 .register-button:hover {
   background-color: #337ecc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
 }
 
 .login-link {
@@ -487,6 +623,11 @@ const goToLogin = () => {
   flex: 1;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.info-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* 左侧卡片样式 */
@@ -509,6 +650,109 @@ const goToLogin = () => {
 .card-header .el-icon {
   font-size: 18px;
   margin-right: 8px;
+}
+
+/* 表单字段动画 - 全新优化版 */
+.form-fields-container {
+  position: relative;
+  min-height: 320px; /* 确保容器高度足够，防止切换时页面跳动 */
+  perspective: 1000px; /* 3D视角效果 */
+  transform-style: preserve-3d;
+  overflow: hidden;
+}
+
+/* 处理整个表单组的进出动画 */
+.form-fields-enter-active {
+  animation: slideInFields 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.form-fields-leave-active {
+  animation: slideOutFields 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  position: absolute;
+  width: 100%;
+}
+
+@keyframes slideInFields {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideOutFields {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.95);
+  }
+}
+
+/* 单个表单项的错开动画 */
+.form-fields-enter-active .el-form-item {
+  animation: fadeInItem 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+}
+
+.form-fields-leave-active .el-form-item {
+  animation: fadeOutItem 0.4s ease forwards;
+  opacity: 1;
+}
+
+@keyframes fadeInItem {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOutItem {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+/* 错开表单项的动画延迟 */
+.form-fields-enter-active .el-form-item:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.form-fields-enter-active .el-form-item:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.form-fields-enter-active .el-form-item:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.form-fields-enter-active .el-form-item:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+/* 表单控件内部的动画效果 */
+:deep(.el-input),
+:deep(.el-select) {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:deep(.el-input:focus-within),
+:deep(.el-select:focus-within) {
+  transform: translateY(-2px);
 }
 
 @media (max-width: 768px) {
@@ -539,6 +783,10 @@ const goToLogin = () => {
   .action-area {
     margin-top: 1rem;
     padding-top: 1rem;
+  }
+  
+  .form-fields-container {
+    min-height: 280px;
   }
 }
 </style>

@@ -10,6 +10,10 @@ import Course from '../router/components/student/CourseView.vue'
 import Notification from './components/student/Notification.vue'
 import AIGuide from './components/student/AIGuide.vue'
 import Setting from './components/student/Setting.vue'
+import MainPageTea from '../views/MainPageTea.vue'
+import ClassManguage_tea from './components/teacher/ClassManguage.vue'
+import ProjectManguage_tea from './components/teacher/ProjectManguage.vue'
+import Setting_tea from './components/teacher/Setting.vue'
 
 const routes: RouteRecordRaw[] = [
     {path: '/', redirect: '/login'},
@@ -42,6 +46,34 @@ const routes: RouteRecordRaw[] = [
                 component: Setting
             }
         ] 
+    },
+    {
+        path: '/teacher',
+        name: 'Teacher',
+        component: MainPageTea,
+        redirect: '/teacher/ai',
+        children: [
+            {
+                path: 'ai',
+                name: 'AIGuide',
+                component: AIGuide
+            },
+            {
+                path: 'class',
+                name: 'ClassManguage',
+                component: ClassManguage_tea
+            },
+            {
+                path: 'project',
+                name: 'ProjectManguage',
+                component: ProjectManguage_tea
+            },
+            {
+                path: 'setting',
+                name: 'Setting',
+                component: Setting_tea
+            }
+        ]
     }
 ]
 

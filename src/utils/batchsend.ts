@@ -12,7 +12,6 @@ export const batchSend = (messageQueue: any[]) => {
           conversationId: conversationId,
           messages: messageQueue
         }
-    
         batchCreateMessages_method(jsonData);
       }
 }
