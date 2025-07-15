@@ -5,61 +5,33 @@
       <div class="header-hover-bg" ref="hoverBgRef"></div>
 
       <button class="header-button" @click="createNewSession">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-        >
-          <path
-            fill="currentColor"
-            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 11h3v-2h-3V8h-2v3H8v2h3v3h2v-3z"
-          />
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+          <path fill="currentColor"
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 11h3v-2h-3V8h-2v3H8v2h3v3h2v-3z" />
         </svg>
         <span>新建会话</span>
       </button>
 
       <button class="header-button">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-        >
-          <path
-            fill="currentColor"
-            d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8s-3.58 8-8 8zm.5-13H11v6l5.25 3.15l.75-1.23l-4.5-2.67z"
-          />
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+          <path fill="currentColor"
+            d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8s-3.58 8-8 8zm.5-13H11v6l5.25 3.15l.75-1.23l-4.5-2.67z" />
         </svg>
         <span>对话历史</span>
       </button>
 
       <button class="header-button">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-        >
-          <path
-            fill="currentColor"
-            d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
-          />
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+          <path fill="currentColor"
+            d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z" />
         </svg>
         <span>历史搜索</span>
       </button>
-      
+
       <button class="header-button">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-        >
-          <path
-            fill="currentColor"
-            d="M12 2.5l1.5 3.5l3.5 1.5l-3.5 1.5l-1.5 3.5l-1.5-3.5l-3.5-1.5l3.5-1.5L12 2.5zM6 9.5l1 2l2 1l-2 1l-1 2l-1-2l-2-1l2-1l1-2zm12 6l1 2l2 1l-2 1l-1 2l-1-2l-2-1l2-1l1-2z"
-          />
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+          <path fill="currentColor"
+            d="M12 2.5l1.5 3.5l3.5 1.5l-3.5 1.5l-1.5 3.5l-1.5-3.5l-3.5-1.5l3.5-1.5L12 2.5zM6 9.5l1 2l2 1l-2 1l-1 2l-1-2l-2-1l2-1l1-2zm12 6l1 2l2 1l-2 1l-1 2l-1-2l-2-1l2-1l1-2z" />
         </svg>
         <span>专业模式</span>
       </button>
@@ -74,19 +46,11 @@
       </transition>
 
       <transition-group name="message-pop" tag="div" class="messages-list">
-        <div
-          v-for="message in messages"
-          :key="message.id"
-          :class="['message-item', `message-${message.sender}`]"
-        >
+        <div v-for="message in messages" :key="message.id" :class="['message-item', `message-${message.sender}`]">
           <div class="message-bubble">
             <span class="message-text">{{ message.text }}</span>
           </div>
-          <el-avatar
-            v-if="message.sender === 'user' && userInfo"
-            :src="userInfo.avatar"
-            :size="36"
-          />
+          <el-avatar v-if="message.sender === 'user' && userInfo" :src="userInfo.avatar" :size="36" />
         </div>
       </transition-group>
     </div>
@@ -110,43 +74,23 @@
           </template>
         </el-dropdown>
       </div>
-      
+
       <div class="input-container">
-        <textarea
-          class="chat-input"
-          placeholder="输入您的问题..."
-          rows="1"
-          v-model="userInput"
-          @keydown.enter.prevent="sendMessage"
-        ></textarea>
+        <textarea class="chat-input" placeholder="输入您的问题..." rows="1" v-model="userInput"
+          @keydown.enter.prevent="sendMessage"></textarea>
 
         <div class="input-actions">
           <button class="action-button upload-button">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-            >
-              <path
-                fill="currentColor"
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+              <path fill="currentColor"
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
             </svg>
           </button>
 
           <!-- 发送消息Button -->
           <button class="send-button" @click="sendMessage">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-            >
-              <path
-                fill="currentColor"
-                d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
             </svg>
           </button>
         </div>
@@ -158,6 +102,7 @@
 </template>
 
 <script setup>
+import { createParser } from 'eventsource-parser';
 import { ref, onMounted, computed } from "vue";
 import { useStudentInfoStore } from "../../../store/studentInfoStore";
 import { useAIChatStore } from "../../../store/AIChatStore";
@@ -183,15 +128,15 @@ const hoverBgRef = ref(null);
 // Model Selection
 const selectedModel = ref('tecent-yuanbao');
 const models = ref([
-    { value: 'tecent-yuanbao', label: '元宝大模型' },
-    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
+  { value: 'tecent-yuanbao', label: '元宝大模型' },
+  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
 ]);
 const selectedModelLabel = computed(() => {
-    const model = models.value.find(m => m.value === selectedModel.value);
-    return model ? model.label : '';
+  const model = models.value.find(m => m.value === selectedModel.value);
+  return model ? model.label : '';
 });
 const handleModelChange = (command) => {
-    selectedModel.value = command;
+  selectedModel.value = command;
 };
 
 // --- 核心功能实现 ---
@@ -200,15 +145,19 @@ const handleModelChange = (command) => {
  * 新建会话：清空本地所有状态，并通知全局Store
  */
 const createNewSession = () => {
-    messages.value = [];
-    memoryId.value = null;
-    isReceiving.value = false;
-    aiChatStore.clearSession(); // 同步清空全局状态
+  messages.value = [];
+  memoryId.value = null;
+  isReceiving.value = false;
+  aiChatStore.clearSession(); // 同步清空全局状态
 };
 
 /**
  * 使用 eventsource-parser 处理流式响应
  */
+let messageai = ""
+let tempMemoryId = '';
+let aiMessageId = null;
+let tempTitle = '';
 const processStream = async (stream) => {
   console.log("开始处理流:", stream);
   let tempMemoryId = '';
@@ -321,52 +270,81 @@ const processStream = async (stream) => {
             console.log("会话信息已保存到全局Store");
         }
     } catch (error) {
-        console.error("创建会话失败:", error);
+      console.error("创建会话失败:", error);
     }
   }
 };
+const parser = createParser({
+  onEvent: (event) => {
 
+    try {
+      const data = JSON.parse(event.data);
+      const content = data.content || data;
+    } catch (e) {
+      if (event.data.startsWith('[MEMORY_ID:')) {
+        const match = event.data.match(/\[MEMORY_ID:(.*?)\]/);
+        if (match) tempMemoryId = match[1];
+      } else if (event.data.startsWith('[TITLE:')) {
+        const match = event.data.match(/\[TITLE:(.*?)\]/);
+        if (match) tempTitle = match[1];
+      } else if (event.data !== '[AiMessageStart]' && event.data) {
+        // 如果是第一块AI文本，则创建新的消息气泡
+        if (aiMessageId === null) {
+          aiMessageId = Date.now();
+          //添加AI的sender标识
+          messages.value.push({ id: aiMessageId, sender: 'ai', role: 'ai', text: event.data });
+        } else {
+          // 否则，找到已创建的气泡并追加文本
+          const msg = messages.value.find(m => m.id === aiMessageId);
+          if (msg) {
+            msg.text += event.data;
+          }
+        }
+      }
+    }
+  }
+});
 
 /**
  * 发送消息总入口
  */
 const sendMessage = async () => {
-    if (isReceiving.value) return;
+  if (isReceiving.value) return;
 
-    const text = userInput.value.trim();
-    if (!text) return;
+  const text = userInput.value.trim();
+  if (!text) return;
 
-    isReceiving.value = true;
-    messages.value.push({
-        id: Date.now(),
-        sender: "user", // sender 属性用于CSS样式区分
-        role: "user",    // role 属性用于逻辑判断
-        text: text,
+  isReceiving.value = true;
+  messages.value.push({
+    id: Date.now(),
+    sender: "user", // sender 属性用于CSS样式区分
+    role: "user",    // role 属性用于逻辑判断
+    text: text,
+  });
+  userInput.value = "";
+
+  try {
+    const response = await streamChat_method({
+      message: text,
+      memoryId: memoryId.value,
     });
-    userInput.value = "";
 
-    try {
-        const response = await streamChat_method({
-            message: text,
-            memoryId: memoryId.value,
-        });
-
-        if (response.body) {
-            await processStream(response.body);
-        } else {
-            throw new Error("响应体为空");
-        }
-    } catch (error) {
-        console.error("流式请求失败:", error);
-        messages.value.push({
-            id: Date.now(),
-            sender: 'ai',
-            role: 'ai',
-            text: '网络错误，请稍后再试。'
-        });
-    } finally {
-        isReceiving.value = false;
+    if (response.body) {
+      await processStream(response.body);
+    } else {
+      throw new Error("响应体为空");
     }
+  } catch (error) {
+    console.error("流式请求失败:", error);
+    messages.value.push({
+      id: Date.now(),
+      sender: 'ai',
+      role: 'ai',
+      text: '网络错误，请稍后再试。'
+    });
+  } finally {
+    isReceiving.value = false;
+  }
 };
 
 onMounted(() => {
@@ -404,7 +382,8 @@ onMounted(() => {
 .chat-container {
   flex: 1;
   overflow-y: auto;
-  padding: 100px 2rem 2rem 2rem; /* 增加顶部内边距，防止被header遮挡 */
+  padding: 100px 2rem 2rem 2rem;
+  /* 增加顶部内边距，防止被header遮挡 */
   display: flex;
   flex-direction: column;
 }
@@ -513,22 +492,26 @@ onMounted(() => {
 
   display: flex;
   align-items: center;
-  justify-content: center; /* 从左侧开始排列  flex-start*/
+  justify-content: center;
+  /* 从左侧开始排列  flex-start*/
   gap: 20px;
   z-index: 10;
-  position: relative; /* Added for containing the hover background */
+  position: relative;
+  /* Added for containing the hover background */
 }
 
 .header-hover-bg {
   position: absolute;
-  top: 10px; /* Adjust to vertically center */
+  top: 10px;
+  /* Adjust to vertically center */
   height: calc(100% - 20px);
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
-  z-index: 1; /* Behind buttons */
+  z-index: 1;
+  /* Behind buttons */
 }
 
 .header-button {
@@ -544,12 +527,14 @@ onMounted(() => {
   padding: 8px 12px;
   border-radius: 8px;
   transition: background-color 0.2s ease;
-  z-index: 2; /* In front of hover background */
+  z-index: 2;
+  /* In front of hover background */
   position: relative;
 }
 
 .header-button:hover {
-  background-color: transparent; /* Remove old hover effect */
+  background-color: transparent;
+  /* Remove old hover effect */
 }
 
 .header-button svg {
@@ -668,4 +653,3 @@ onMounted(() => {
   margin-top: 0.8rem;
 }
 </style>
-
