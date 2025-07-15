@@ -102,7 +102,6 @@
 </template>
 
 <script setup>
-import { createParser } from 'eventsource-parser';
 import { ref, onMounted, computed } from "vue";
 import { useStudentInfoStore } from "../../../store/studentInfoStore";
 import { useAIChatStore } from "../../../store/AIChatStore";
@@ -154,10 +153,6 @@ const createNewSession = () => {
 /**
  * 使用 eventsource-parser 处理流式响应
  */
-let messageai = ""
-let tempMemoryId = '';
-let aiMessageId = null;
-let tempTitle = '';
 const processStream = async (stream) => {
   console.log("开始处理流:", stream);
   let tempMemoryId = '';
@@ -195,11 +190,11 @@ const processStream = async (stream) => {
       // 当收到AI消息开始标记时，创建一个空的AI消息气泡
       aiMessageId = Date.now();
       isCollectingMessage = true;
-      messages.value.push({ 
-        id: aiMessageId, 
-        sender: 'ai', 
-        role: 'ai', 
-        text: '' 
+      messages.value.push({
+        id: aiMessageId,
+        sender: 'ai',
+        role: 'ai',
+        text: ''
       });
       console.log("创建了新的AI消息气泡，ID:", aiMessageId);
     } else if (isCollectingMessage && data !== '[DONE]' && data.trim()) {
@@ -223,7 +218,7 @@ const processStream = async (stream) => {
     // (Optional) You can add other callbacks here if needed
     onError: (err) => console.error('SSE Parser Error:', err),
   });
-  
+
   const reader = stream.getReader();
   const decoder = new TextDecoder('utf-8');
 
@@ -244,66 +239,37 @@ const processStream = async (stream) => {
     reader.releaseLock();
     parser.reset(); // Clean up the parser state
   }
-  
+
   // After the stream ends, if it was a new session, create the conversation record.
   if (tempMemoryId && tempTitle && !memoryId.value) {
     console.log("准备创建会话记录:", { tempMemoryId, tempTitle });
     memoryId.value = tempMemoryId; // Update the local memoryId
     try {
-        const params = {
-            title: tempTitle,
-            memoryId: tempMemoryId,
-            modelName: selectedModel.value,
-            enableRag: false,
-            courseId: null,
-        };
-        console.log("创建会话参数:", params);
-        const response = await createConversation_method(params);
-        console.log("创建会话响应:", response);
-        if (response.data.code === 200) {
-            // Save the successful conversation info to the global store
-            aiChatStore.setConversationDetails({
-                conversationId: response.data.data.id,
-                memoryId: tempMemoryId,
-                title: tempTitle,
-            });
-            console.log("会话信息已保存到全局Store");
-        }
+      const params = {
+        title: tempTitle,
+        memoryId: tempMemoryId,
+        modelName: selectedModel.value,
+        enableRag: false,
+        courseId: null,
+      };
+      console.log("创建会话参数:", params);
+      const response = await createConversation_method(params);
+      console.log("创建会话响应:", response);
+      if (response.data.code === 200) {
+        // Save the successful conversation info to the global store
+        aiChatStore.setConversationDetails({
+          conversationId: response.data.data.id,
+          memoryId: tempMemoryId,
+          title: tempTitle,
+        });
+        console.log("会话信息已保存到全局Store");
+      }
     } catch (error) {
       console.error("创建会话失败:", error);
     }
   }
 };
-const parser = createParser({
-  onEvent: (event) => {
 
-    try {
-      const data = JSON.parse(event.data);
-      const content = data.content || data;
-    } catch (e) {
-      if (event.data.startsWith('[MEMORY_ID:')) {
-        const match = event.data.match(/\[MEMORY_ID:(.*?)\]/);
-        if (match) tempMemoryId = match[1];
-      } else if (event.data.startsWith('[TITLE:')) {
-        const match = event.data.match(/\[TITLE:(.*?)\]/);
-        if (match) tempTitle = match[1];
-      } else if (event.data !== '[AiMessageStart]' && event.data) {
-        // 如果是第一块AI文本，则创建新的消息气泡
-        if (aiMessageId === null) {
-          aiMessageId = Date.now();
-          //添加AI的sender标识
-          messages.value.push({ id: aiMessageId, sender: 'ai', role: 'ai', text: event.data });
-        } else {
-          // 否则，找到已创建的气泡并追加文本
-          const msg = messages.value.find(m => m.id === aiMessageId);
-          if (msg) {
-            msg.text += event.data;
-          }
-        }
-      }
-    }
-  }
-});
 
 /**
  * 发送消息总入口
