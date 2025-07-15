@@ -127,4 +127,62 @@ export const handlers = [
       }
     });
   }),
+
+  // Mock for fetching user conversation history with pagination
+  http.get(`${API_PREFIX}/ai/conversation/user/:userId`, ({ request, params }) => {
+    const { userId } = params;
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1', 10);
+    const pageSize = parseInt(url.searchParams.get('pageSize') || '10', 10);
+
+    console.log(`MSW: 拦截到获取用户 ${userId} 的会话历史请求`, { page, pageSize });
+
+    // Generate a list of mock conversations
+    const totalConversations = 123; // Total number of items
+    const allConversations = Array.from({ length: totalConversations }, (_, i) => {
+      const id = i + 1;
+      const titles = [
+        'Vue 3 Composition API 深度解析', '如何使用Pinia进行状态管理', 'Vite与Webpack的性能对比',
+        'Element Plus 自定义主题', 'TypeScript在Vue项目中的最佳实践', '深入理解React Hooks',
+        '现代CSS布局技巧', 'Node.js后端开发入门', 'Python数据分析与可视化', 'RESTful API设计规范'
+      ];
+      const courses = ['Java程序设计', 'Web前端开发', '数据库系统', '计算机网络', null];
+      const tags = ['Vue', 'React', 'Node.js', 'Java', 'Python', '性能优化', 'UI设计'];
+      const courseName = courses[i % courses.length];
+      const createTime = new Date(Date.now() - i * 24 * 3600 * 1000).toISOString();
+      
+      return {
+        id,
+        title: `${titles[i % titles.length]} #${id}`,
+        modelName: id % 2 === 0 ? 'gpt-3.5-turbo' : 'gpt-4',
+        messageCount: Math.floor(Math.random() * 50) + 2,
+        tags: `${tags[i % tags.length]},${tags[(i + 1) % tags.length]}`,
+        memoryId: `msw-mem-id-${id}`,
+        enableRag: i % 3 === 0,
+        courseId: courseName ? (i % 4) + 1 : null,
+        courseName,
+        createBy: id,
+        createByName: `模拟用户${(i % 5) + 1}`,
+        createTime,
+        updateTime: createTime
+      };
+    });
+
+    // Paginate the results
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const records = allConversations.slice(start, end);
+    
+    return HttpResponse.json({
+      code: 200,
+      message: "查询成功 (MSW)",
+      data: {
+        records,
+        total: totalConversations,
+        size: pageSize,
+        current: page,
+        pages: Math.ceil(totalConversations / pageSize),
+      },
+    });
+  }),
 ] 

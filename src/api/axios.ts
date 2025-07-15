@@ -221,3 +221,37 @@ export const createConversation_method = async (params: {
   // 这里使用axios实例，因为它处理JSON响应和错误拦截更方便
   return apiClient.post('ai/conversation/create', params);
 };
+
+//获取历史会话
+export const getHistory_method = async (page = 1, pageSize = 10) => {
+  try {
+    const store = useStudentInfoStore();
+    const studentID = store.userInfo?.id;
+
+    if (!studentID) {
+      ElMessage.error('无法获取用户ID，请重新登录');
+      throw new Error('User ID not found');
+    }
+
+    const response = await apiClient.get(`ai/conversation/user/${studentID}`, {
+      params: {
+        page,
+        pageSize,
+      }
+    });
+
+    if (response.data.code === 200) {
+      console.log("获取到分页历史数据:", response.data.data);
+      return response.data.data;
+    } else {
+      ElMessage.error(response.data.message);
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!errorMessage.includes('获取历史会话失败')) {
+        ElMessage.error(`获取历史会话失败: ${errorMessage}`);
+    }
+    throw error;
+  }
+}

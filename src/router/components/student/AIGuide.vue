@@ -12,7 +12,7 @@
         <span>新建会话</span>
       </button>
 
-      <button class="header-button">
+      <button class="header-button" @click="openHistoryDialog">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
           <path fill="currentColor"
             d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8s-3.58 8-8 8zm.5-13H11v6l5.25 3.15l.75-1.23l-4.5-2.67z" />
@@ -98,6 +98,8 @@
 
       <div class="bottom-note">智慧通AI仅供学习参考，请勿用于不当用途</div>
     </div>
+
+    <ChatHistory v-model="isHistoryDialogVisible" @select-conversation="handleSelectConversation" />
   </div>
 </template>
 
@@ -107,6 +109,7 @@ import { useStudentInfoStore } from "../../../store/studentInfoStore";
 import { useAIChatStore } from "../../../store/AIChatStore";
 import { streamChat_method, createConversation_method } from "../../../api/axios";
 import { createParser } from 'eventsource-parser';
+import ChatHistory from '../../../components/commonCom/ChatHistory.vue';
 
 // --- Stores ---
 const studentStore = useStudentInfoStore();
@@ -124,6 +127,9 @@ const userInput = ref('');
 const floatingHeaderRef = ref(null);
 const hoverBgRef = ref(null);
 
+// History Dialog State
+const isHistoryDialogVisible = ref(false);
+
 // Model Selection
 const selectedModel = ref('tecent-yuanbao');
 const models = ref([
@@ -139,6 +145,23 @@ const handleModelChange = (command) => {
 };
 
 // --- 核心功能实现 ---
+
+/**
+ * 打开历史记录弹窗
+ */
+const openHistoryDialog = () => {
+  isHistoryDialogVisible.value = true;
+};
+
+/**
+ * 从历史记录中选择一个会话
+ * @param {string} conversationId
+ */
+const handleSelectConversation = (conversationId) => {
+  console.log("即将加载会话:", conversationId);
+  // 未来在此实现加载会话的逻辑
+};
+
 
 /**
  * 新建会话：清空本地所有状态，并通知全局Store
@@ -199,7 +222,6 @@ const processStream = async (stream) => {
     if (msg) {
       msg.text += data;
     } else {
-      // 理论上不应该发生，因为我们已确保气泡的存在
       console.error("Fatal: AI message bubble not found after creation.");
     }
   };
