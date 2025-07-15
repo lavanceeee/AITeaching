@@ -54,7 +54,7 @@ export const handlers = [
         await new Promise((r) => setTimeout(r, 300));
 
         // 模拟AI回复，一个字符一个字符地发送
-        const reply = '你好！我是智慧通AI助手。很高兴为你解答关于"' + message + '"的问题。\n\n根据你的提问，我可以提供以下信息：\n\n1. 这是一个MSW模拟的流式响应\n2. 它模拟了真实后端的SSE格式\n3. 每个字符都是单独发送的，实现打字机效果';
+        const reply = '你好！我是智慧通"' + message + '"的问题。\n\n';
         
         for (const char of reply) {
           controller.enqueue(encoder.encode(`data: ${char}\n\n`));

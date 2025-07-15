@@ -157,10 +157,14 @@ const handleModelChange = (command) => {
  * 打开历史记录弹窗
  */
 const openHistoryDialog = () => {
-  isHistoryDialogVisible.value = true;
+  console.log("开始batch");
+  console.log(messageQueue.value);
   batchSend(messageQueue.value);
   // 清空消息队列
   messageQueue.value = [];
+
+  isHistoryDialogVisible.value = true;
+
 };
 
 /**
@@ -169,13 +173,18 @@ const openHistoryDialog = () => {
  */
 const handleSelectConversation = async (conversation) => {
 
+  aiChatStore.setConversationId(conversation.id);
+    //后续发信息
+  memoryId.value = conversation.memoryId;
+
+  //保存
+  batchSend(messageQueue.value);
+  // 清空消息队列
+  messageQueue.value = [];
+  
   try {
     // 1. 调用API获取该会话的完整消息列表
     const historyMessages = await getConversationMessages_method(conversation.id);
-
-    aiChatStore.setConversationDetails(conversation);
-    //后续发信息
-    memoryId.value = conversation.memoryId;
 
     if (historyMessages) {
       // 2. 将API返回的数据 `map` 成UI需要的格式
@@ -301,7 +310,7 @@ const processStream = async (stream) => {
     }
   } finally {
     //将AI消息加到消息队列
-    console.log("AI消息:", aiMessageAccumulator);
+    console.log("Queue里卖弄的:", aiMessageAccumulator);
     messageQueue.value.push({
       messageType: '1',
       content: aiMessageAccumulator

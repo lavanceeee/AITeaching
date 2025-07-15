@@ -37,6 +37,10 @@ export const useAIChatStore = defineStore('AIChat', {
 
         getConversationId() {
             return this.conversationId;
+        },
+
+        setConversationId(conversationId: number) {
+            this.conversationId = conversationId;
         }
     }
 })

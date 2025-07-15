@@ -50,7 +50,6 @@ import { ElDialog, ElSkeleton, ElButton, ElPagination, ElTag, ElIcon, ElTooltip 
 import { CollectionTag, Cpu } from '@element-plus/icons-vue';
 import { getHistory_method } from '../../api/axios';
 import { useAIChatStore } from '../../store/AIChatStore';
-
 const props = defineProps({
   modelValue: {
     type: Boolean,
