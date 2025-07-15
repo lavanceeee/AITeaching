@@ -49,6 +49,7 @@ import { ref, watch, reactive } from 'vue';
 import { ElDialog, ElSkeleton, ElButton, ElPagination, ElTag, ElIcon, ElTooltip } from 'element-plus';
 import { CollectionTag, Cpu } from '@element-plus/icons-vue';
 import { getHistory_method } from '../../api/axios';
+import { useAIChatStore } from '../../store/AIChatStore';
 
 const props = defineProps({
   modelValue: {
@@ -120,6 +121,9 @@ const selectConversation = (id) => {
       memoryId: conversation.memoryId,
       title: conversation.title
     });
+
+    //获取当前消息的所有聊天历史
+    
   }
 };
 

@@ -110,7 +110,7 @@ import { useAIChatStore } from "../../../store/AIChatStore";
 import { streamChat_method, createConversation_method, batchCreateMessages_method } from "../../../api/axios";
 import { createParser } from 'eventsource-parser';
 import ChatHistory from '../../../components/commonCom/ChatHistory.vue';
-// import { batchCreateMessages_method } from "../../../api/axios";
+import { batchSend } from "../../../utils/batchsend";
 const messageQueue = ref([]);
 
 // --- Stores ---
@@ -153,6 +153,9 @@ const handleModelChange = (command) => {
  */
 const openHistoryDialog = () => {
   isHistoryDialogVisible.value = true;
+  batchSend(messageQueue.value);
+  // 清空消息队列
+  messageQueue.value = [];
 };
 
 /**
@@ -169,6 +172,13 @@ const handleSelectConversation = (conversationId) => {
  * 新建会话：清空本地所有状态，并通知全局Store
  */
 const createNewSession = () => {
+
+  //先保存
+  batchSend(messageQueue.value);
+  // 清空消息队列
+  messageQueue.value = [];
+
+
   messages.value = [];
   memoryId.value = null;
   isReceiving.value = false;
@@ -358,16 +368,14 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   //组件卸载前发送消息队列
-  if (messageQueue.value.length > 0) {
-    const jsonData = {
-      conversationId: aiChatStore.conversationId,
-      messages: messageQueue.value
-    }
-
-    batchCreateMessages_method(jsonData);
-  }
+  batchSend(messageQueue.value);
 }
 );
+
+//点击四个按钮时也执行
+const handleButtonClick = () => {
+  batchSend(messageQueue.value);
+}
 </script>
 
 <style scoped>

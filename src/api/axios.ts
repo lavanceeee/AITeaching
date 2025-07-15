@@ -3,6 +3,7 @@ import { BASE_URL } from './config'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import router from '../router';
 import { useStudentInfoStore } from '../store/studentInfoStore';
+import { useAIChatStore } from '../store/AIChatStore';
 
 // 创建 axios 实例
 const apiClient = axios.create({
@@ -258,7 +259,7 @@ export const getHistory_method = async (page = 1, pageSize = 10) => {
 
 
 export const batchCreateMessages_method = async (params: {
-  conversationId: string;
+  conversationId: number;
   messages: Array<{
     messageType: number;
     content: string;
@@ -280,3 +281,16 @@ export const batchCreateMessages_method = async (params: {
     throw error;
   }
 }
+
+
+// export const getConversationHistory_method = async (params) => {
+//   try {
+//     const store = useAIChatStore;
+//     const conversationId = params.conversationId;
+//     if (conversationId) {
+//       const response = await apiClient.get(`/ai/message/conversation`)
+    
+//     }
+    
+//   }
+// }
