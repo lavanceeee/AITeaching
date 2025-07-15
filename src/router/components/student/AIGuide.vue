@@ -167,11 +167,15 @@ const openHistoryDialog = () => {
  * 从历史记录中选择一个会话并加载其内容
  * @param {object} conversation - 包含id, title等信息的会话对象
  */
-const handleSelectConversation = async () => {
+const handleSelectConversation = async (conversation) => {
 
   try {
     // 1. 调用API获取该会话的完整消息列表
-    const historyMessages = await getConversationMessages_method();
+    const historyMessages = await getConversationMessages_method(conversation.id);
+
+    aiChatStore.setConversationDetails(conversation);
+    //后续发信息
+    memoryId.value = conversation.memoryId;
 
     if (historyMessages) {
       // 2. 将API返回的数据 `map` 成UI需要的格式

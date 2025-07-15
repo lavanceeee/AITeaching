@@ -109,24 +109,12 @@ const handlePageChange = (newPage) => {
 
 const selectConversation = async (id) => {
   console.log("即将加载会话:", id);
-  emit('select-conversation', id); 
-  dialogVisible.value = false;
 
-  //更新store中的信息为当前会话
+    //更新store中的信息为当前会话
   const conversation = historyList.value.find(item => item.id === id);
-  if (conversation) {
-    const aiChatStore = useAIChatStore();
-    aiChatStore.setConversationDetails({
-      conversationId: conversation.id,
-      memoryId: conversation.memoryId,
-      title: conversation.title
-    });
 
-    // //获取当前消息的所有聊天历史
-    // const history = await getConversationHistory_method();
-    
-    
-  }
+  emit('select-conversation', conversation); 
+  dialogVisible.value = false;
 };
 
 const formatDateTime = (dateTimeString) => {

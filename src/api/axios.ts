@@ -282,10 +282,7 @@ export const batchCreateMessages_method = async (params: {
   }
 }
 
-export const getConversationMessages_method = async () => {
-
-  const store = useAIChatStore();
-  const conversationId = store.getConversationId();
+export const getConversationMessages_method = async (conversationId: number) => {
 
   try {
     
