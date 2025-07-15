@@ -255,3 +255,28 @@ export const getHistory_method = async (page = 1, pageSize = 10) => {
     throw error;
   }
 }
+
+
+export const batchCreateMessages_method = async (params: {
+  conversationId: string;
+  messages: Array<{
+    messageType: number;
+    content: string;
+  }>
+}) => {
+  try {
+    const response = await apiClient.post('/ai/message/batch-create', params);
+
+    if (response.data.code === 200) {
+      console.log("批量创建成功:", response.data.data);
+      
+    } else {
+      ElMessage.error(response.data.message);
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    ElMessage.error(`批量创建失败: ${errorMessage}`);
+    throw error;
+  }
+}

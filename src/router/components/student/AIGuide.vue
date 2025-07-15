@@ -104,12 +104,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, onBeforeUnmount } from "vue";
 import { useStudentInfoStore } from "../../../store/studentInfoStore";
 import { useAIChatStore } from "../../../store/AIChatStore";
-import { streamChat_method, createConversation_method } from "../../../api/axios";
+import { streamChat_method, createConversation_method, batchCreateMessages_method } from "../../../api/axios";
 import { createParser } from 'eventsource-parser';
 import ChatHistory from '../../../components/commonCom/ChatHistory.vue';
+// import { batchCreateMessages_method } from "../../../api/axios";
+const messageQueue = ref([]);
 
 // --- Stores ---
 const studentStore = useStudentInfoStore();
@@ -177,6 +179,7 @@ const createNewSession = () => {
  * 使用 eventsource-parser 处理流式响应
  */
 const processStream = async (stream) => {
+  let aiMessageAccumulator = '';
   let tempMemoryId = '';
   let tempTitle = '';
   let aiMessageId = null; // 用于追踪当前正在接收的AI消息气泡ID
@@ -221,6 +224,7 @@ const processStream = async (stream) => {
     const msg = messages.value.find(m => m.id === aiMessageId);
     if (msg) {
       msg.text += data;
+      aiMessageAccumulator += data;
     } else {
       console.error("Fatal: AI message bubble not found after creation.");
     }
@@ -245,6 +249,13 @@ const processStream = async (stream) => {
       parser.feed(chunk); // 将数据块喂给解析器
     }
   } finally {
+    //将AI消息加到消息队列
+    console.log("AI消息:", aiMessageAccumulator);
+    messageQueue.value.push({
+      messageType: '1',
+      content: aiMessageAccumulator
+    });
+  
     reader.releaseLock();
     parser.reset(); // 清理并重置解析器状态
   }
@@ -284,6 +295,12 @@ const sendMessage = async () => {
 
   const text = userInput.value.trim();
   if (!text) return;
+
+  //添加到消息队列
+  messageQueue.value.push({
+    messageType: '0',
+    content: text
+  });
 
   isReceiving.value = true;
   messages.value.push({
@@ -338,6 +355,19 @@ onMounted(() => {
     hoverBg.style.opacity = "0";
   });
 });
+
+onBeforeUnmount(() => {
+  //组件卸载前发送消息队列
+  if (messageQueue.value.length > 0) {
+    const jsonData = {
+      conversationId: aiChatStore.conversationId,
+      messages: messageQueue.value
+    }
+
+    batchCreateMessages_method(jsonData);
+  }
+}
+);
 </script>
 
 <style scoped>

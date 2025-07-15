@@ -26,7 +26,7 @@
                 </el-tooltip>
               </div>
             </div>
-            <el-button type="primary" link @click="selectConversation(item.memoryId)">继续对话</el-button>
+            <el-button type="primary" link @click="selectConversation(item.id)">继续对话</el-button>
           </div>
         </div>
         <div class="pagination-container">
@@ -106,9 +106,21 @@ const handlePageChange = (newPage) => {
   fetchHistory();
 };
 
-const selectConversation = (memoryId) => {
-  emit('select-conversation', memoryId);
+const selectConversation = (id) => {
+  console.log("即将加载会话:", id);
+  emit('select-conversation', id); 
   dialogVisible.value = false;
+
+  //更新store中的信息为当前会话
+  const conversation = historyList.value.find(item => item.id === id);
+  if (conversation) {
+    const aiChatStore = useAIChatStore();
+    aiChatStore.setConversationDetails({
+      conversationId: conversation.id,
+      memoryId: conversation.memoryId,
+      title: conversation.title
+    });
+  }
 };
 
 const formatDateTime = (dateTimeString) => {
