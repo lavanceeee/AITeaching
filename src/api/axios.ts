@@ -226,7 +226,7 @@ export const createConversation_method = async (params: {
 export const getHistory_method = async (page = 1, pageSize = 10) => {
   try {
     const store = useStudentInfoStore();
-    const studentID = store.userInfo?.id;
+    const studentID = store.userInfo?.id || '123';
 
     if (!studentID) {
       ElMessage.error('无法获取用户ID，请重新登录');

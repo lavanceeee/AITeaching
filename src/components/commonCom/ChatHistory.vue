@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="dialogVisible" title="对话历史" width="60%" @open="onDialogOpen" top="15vh" custom-class="history-dialog">
+  <el-dialog v-model="dialogVisible" title="对话历史" width="75%" @open="onDialogOpen" top="10vh" custom-class="history-dialog">
     <div v-if="isLoading" class="skeleton-container">
       <el-skeleton :rows="5" animated />
     </div>
@@ -11,24 +11,19 @@
         <div class="history-list">
           <div v-for="item in historyList" :key="item.id" class="history-item">
             <div class="item-main">
+              <!-- Header -->
               <div class="item-header">
                 <p class="item-title" :title="item.title">{{ item.title }}</p>
                 <div class="item-tags" v-if="item.tags">
-                  <el-tag v-for="tag in item.tags.split(',')" :key="tag" size="small" type="info" effect="plain">{{ tag }}</el-tag>
+                  <el-tag v-for="tag in item.tags.split(',')" :key="tag" size="small" round effect="plain">{{ tag }}</el-tag>
                 </div>
               </div>
-              <div class="item-meta">
+              <!-- Body -->
+              <div class="item-body">
                 <span><el-icon><CollectionTag /></el-icon> {{ item.courseName || '通用' }}</span>
-                <span><el-icon><ChatDotRound /></el-icon> {{ item.modelName }}</span>
-                <span><el-icon><Memo /></el-icon> {{ item.messageCount }} 条</span>
                 <el-tooltip content="已启用知识库增强" placement="top" v-if="item.enableRag">
                   <span class="rag-indicator"><el-icon><Cpu /></el-icon> RAG</span>
                 </el-tooltip>
-              </div>
-              <div class="item-meta item-meta-secondary">
-                <span><el-icon><User /></el-icon> {{ item.createByName }}</span>
-                <span><el-icon><Clock /></el-icon> {{ formatDateTime(item.createTime) }}</span>
-                <span><el-icon><Refresh /></el-icon> {{ formatDateTime(item.updateTime) }}</span>
               </div>
             </div>
             <el-button type="primary" link @click="selectConversation(item.memoryId)">继续对话</el-button>
@@ -52,7 +47,7 @@
 <script setup>
 import { ref, watch, reactive } from 'vue';
 import { ElDialog, ElSkeleton, ElButton, ElPagination, ElTag, ElIcon, ElTooltip } from 'element-plus';
-import { CollectionTag, ChatDotRound, Clock, Memo, User, Refresh, Cpu } from '@element-plus/icons-vue';
+import { CollectionTag, Cpu } from '@element-plus/icons-vue';
 import { getHistory_method } from '../../api/axios';
 
 const props = defineProps({
@@ -139,7 +134,7 @@ const formatDateTime = (dateTimeString) => {
 .history-container {
   display: flex;
   flex-direction: column;
-  height: 60vh; /* Fixed height for the container */
+  height: 70vh; /* Increased height */
 }
 
 .history-list {
@@ -162,39 +157,39 @@ const formatDateTime = (dateTimeString) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.25rem;
-  margin-bottom: 0.75rem;
+  padding: 1.1rem 1.5rem; /* Adjusted padding */
+  margin-bottom: 1rem;
   border-radius: 12px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid #e5e7eb;
   background-color: #ffffff;
   transition: all 0.2s ease;
 }
 
 .history-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  /* transform: translateY(-2px); // Removed animation */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border-color: #d1e3ff;
 }
 
 .item-main {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem; /* Adjusted gap */
+  gap: 0.6rem; /* Adjusted gap */
   overflow: hidden;
-  width: calc(100% - 100px); /* Adjust width to leave space for the button */
+  width: calc(100% - 100px);
 }
 
 .item-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
 }
 
 .item-title {
   font-weight: 600;
-  font-size: 1.05rem;
-  color: #2c3e50;
+  font-size: 1.1rem; /* Increased font size */
+  color: #1f2937; /* Darker title */
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -208,29 +203,28 @@ const formatDateTime = (dateTimeString) => {
   gap: 0.5rem;
 }
 
-.item-meta {
+.item-body {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  font-size: 0.85rem;
-  color: #8a919f;
+  gap: 1rem; /* Adjusted gap */
+  font-size: 0.9rem;
+  color: #4b5563;
   align-items: center;
 }
 
-.item-meta-secondary {
-  color: #b0b6c3;
-  font-size: 0.8rem;
-}
-
-.item-meta span {
+.item-body span {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .rag-indicator {
-  color: #409eff;
+  color: #3b82f6; /* Blue for RAG */
   font-weight: 500;
+  border: 1px solid #bfdbfe;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background-color: #eff6ff;
 }
 
 .pagination-container {
@@ -238,7 +232,7 @@ const formatDateTime = (dateTimeString) => {
   justify-content: center;
   padding: 1rem 0 0.5rem 0;
   border-top: 1px solid #f0f0f0;
-  flex-shrink: 0; /* Prevent pagination from shrinking */
+  flex-shrink: 0;
 }
 
 /* Custom scrollbar for the list */
@@ -259,3 +253,4 @@ const formatDateTime = (dateTimeString) => {
   background: #c7c7c7;
 }
 </style>
+
