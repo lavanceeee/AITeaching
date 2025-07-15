@@ -162,6 +162,7 @@ import { ref, onMounted, computed } from "vue";
 import { useStudentInfoStore } from "../../../store/studentInfoStore";
 import { useAIChatStore } from "../../../store/AIChatStore";
 import { streamChat_method, createConversation_method } from "../../../api/axios";
+import { createParser } from 'eventsource-parser';
 
 // --- Stores ---
 const studentStore = useStudentInfoStore();
@@ -206,59 +207,99 @@ const createNewSession = () => {
 };
 
 /**
- * 直接处理流式响应，所有逻辑内聚于此
+ * 使用 eventsource-parser 处理流式响应
  */
 const processStream = async (stream) => {
-  const reader = stream.getReader();
-  const decoder = new TextDecoder('utf-8');
-  let partialLine = '';
-
+  console.log("开始处理流:", stream);
   let tempMemoryId = '';
   let tempTitle = '';
-  
   let aiMessageId = null; // 用于追踪当前正在接收的AI消息气泡ID
+  let isCollectingMessage = false; // 标记是否正在收集AI消息
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    
-    const chunk = decoder.decode(value, { stream: true });
-    partialLine += chunk;
-    
-    const lines = partialLine.split('\n');
-    partialLine = lines.pop() || '';
+  const onParse = (event) => {
+    // 根据最新的文档，我们直接处理 `event`，不再检查 `event.type`
+    const data = event.data;
+    if (data === undefined) {
+      // 忽略没有数据的事件
+      return;
+    }
 
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue;
-      
-      const data = line.substring(6).trim();
+    console.log(`%c[SSE Parser] Data: ${data}`, 'color: #2e9599; font-weight: bold;');
 
-      if (data.startsWith('[MEMORY_ID:')) {
-        const match = data.match(/\[MEMORY_ID:(.*?)\]/);
-        if (match) tempMemoryId = match[1];
-      } else if (data.startsWith('[TITLE:')) {
-        const match = data.match(/\[TITLE:(.*?)\]/);
-        if (match) tempTitle = match[1];
-      } else if (data !== '[AiMessageStart]' && data) {
-        // 如果是第一块AI文本，则创建新的消息气泡
-        if (aiMessageId === null) {
-            aiMessageId = Date.now();
-            //添加AI的sender标识
-            messages.value.push({ id: aiMessageId, sender: 'ai',role: 'ai', text: data });
-        } else {
-            // 否则，找到已创建的气泡并追加文本
-            const msg = messages.value.find(m => m.id === aiMessageId);
-            if (msg) {
-                msg.text += data;
-            }
-        }
+    // The parser will handle JSON parsing if the data is a valid JSON string.
+    // Here, we handle our custom string-based protocol.
+    if (data.startsWith('[MEMORY_ID:')) {
+      console.log("收到内存ID:", data);
+      const match = data.match(/\[MEMORY_ID:(.*?)\]/);
+      if (match) {
+        tempMemoryId = match[1];
+        console.log("提取到记忆ID:", tempMemoryId);
+      }
+    } else if (data.startsWith('[TITLE:')) {
+      const match = data.match(/\[TITLE:(.*?)\]/);
+      if (match) {
+        tempTitle = match[1];
+        console.log("提取到标题:", tempTitle);
+      }
+    } else if (data === '[AiMessageStart]') {
+      console.log("AI消息开始标记");
+      // 当收到AI消息开始标记时，创建一个空的AI消息气泡
+      aiMessageId = Date.now();
+      isCollectingMessage = true;
+      messages.value.push({ 
+        id: aiMessageId, 
+        sender: 'ai', 
+        role: 'ai', 
+        text: '' 
+      });
+      console.log("创建了新的AI消息气泡，ID:", aiMessageId);
+    } else if (isCollectingMessage && data !== '[DONE]' && data.trim()) {
+      console.log("收到AI文本片段:", data);
+      // 查找当前的AI消息气泡
+      const msgIndex = messages.value.findIndex(m => m.id === aiMessageId);
+      if (msgIndex !== -1) {
+        console.log("向现有气泡追加文本，索引:", msgIndex);
+        // 直接修改数组中的对象以确保Vue能检测到变化
+        messages.value[msgIndex].text += data;
+      } else {
+        console.error("找不到要追加文本的AI消息气泡:", aiMessageId);
       }
     }
-  }
+  };
 
-  // 流结束后，如果是新会话，则创建会话记录
+  // Create a new parser instance for each stream
+  // According to the latest library version, we must pass an object of callbacks.
+  const parser = createParser({
+    onEvent: onParse,
+    // (Optional) You can add other callbacks here if needed
+    onError: (err) => console.error('SSE Parser Error:', err),
+  });
+  
+  const reader = stream.getReader();
+  const decoder = new TextDecoder('utf-8');
+
+  try {
+    console.log("开始读取流");
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        console.log("流读取完成");
+        break;
+      }
+      const chunk = decoder.decode(value, { stream: true });
+      console.log("收到原始数据块:", chunk);
+      parser.feed(chunk); // Feed the chunk directly to the parser
+    }
+  } finally {
+    console.log("清理流资源");
+    reader.releaseLock();
+    parser.reset(); // Clean up the parser state
+  }
+  
+  // After the stream ends, if it was a new session, create the conversation record.
   if (tempMemoryId && tempTitle && !memoryId.value) {
-    memoryId.value = tempMemoryId; // 更新本地 memoryId
+    console.log("准备创建会话记录:", { tempMemoryId, tempTitle });
+    memoryId.value = tempMemoryId; // Update the local memoryId
     try {
         const params = {
             title: tempTitle,
@@ -267,14 +308,17 @@ const processStream = async (stream) => {
             enableRag: false,
             courseId: null,
         };
+        console.log("创建会话参数:", params);
         const response = await createConversation_method(params);
+        console.log("创建会话响应:", response);
         if (response.data.code === 200) {
-            // 将最终成功的会话信息保存到全局Store
+            // Save the successful conversation info to the global store
             aiChatStore.setConversationDetails({
                 conversationId: response.data.data.id,
                 memoryId: tempMemoryId,
                 title: tempTitle,
             });
+            console.log("会话信息已保存到全局Store");
         }
     } catch (error) {
         console.error("创建会话失败:", error);
@@ -403,6 +447,10 @@ onMounted(() => {
   align-self: flex-end;
 }
 
+.message-ai {
+  align-self: flex-start;
+}
+
 .message-bubble {
   padding: 10px 16px;
   border-radius: 20px;
@@ -415,6 +463,14 @@ onMounted(() => {
   color: white;
   border-radius: 20px 20px 4px 20px;
   box-shadow: 0 3px 12px rgba(64, 150, 255, 0.25);
+}
+
+.message-ai .message-bubble {
+  background: white;
+  color: #333;
+  border-radius: 20px 20px 20px 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #eee;
 }
 
 /* Animations */
