@@ -35,11 +35,6 @@ interface LoginRequestParams {
 1. 学生登录 - 用户名：student123 密码：123456
 2. 教师登录 - 用户名：teacher123 密码：123456
 3. 管理员登录 - 用户名：admin123 密码：123456
-使用示例：
-- 学生登录成功：studentNumber=student123, password=123456
-- 教师登录成功：teacherNumber=teacher123, password=123456
-- 管理员登录成功：adminNumber=admin123, password=123456
-- 任何其他组合将返回登录失败
 */
 
 /* 
@@ -67,6 +62,118 @@ interface LoginRequestParams {
 - 根据登录的用户类型，信息会保存到对应的Pinia store中
 - 教师信息将存储在teacherInfoStore中，字段与后端保持一致
 */
+
+/*
+课程管理测试用例：
+1. 创建新课程 - POST /course/create
+   - 调用 createCourse_method 会触发此模拟
+   - 请求体需要包含课程的核心信息，如 name, courseCode, teacherId 等
+   - 成功后返回 { code: 200, message: '...', data: newCourseObject }
+   - newCourseObject 包含所有传入的字段，并额外生成了 id, createTime 和 enrolledCount
+   - 新创建的课程会被添加到模拟数据库的顶部
+
+2. 查询教师的课程列表 - GET /course/teacher/:teacherId
+   - 当前端调用一个（假定的）queryCourses(teacherId, page, pageSize) 方法时触发
+   - 根据 teacherId 筛选课程 (当前模拟数据中 teacherId 为 1)
+   - 支持 page 和 pageSize 分页参数
+   - 返回分页格式的数据：{ records, total, size, current, pages }
+
+调用示例：
+- 在 uploadProject.vue 中提交表单，会调用 createCourse_method
+- 在 ProjectManguage.vue 中（取消注释后）调用 fetchCourses，会触发查询
+*/
+
+// 模拟课程数据库，可被 handler 修改
+let mockCoursesDb = [
+  {
+    id: 1,
+    courseCode: "CS101",
+    name: "Java程序设计",
+    description: "Java基础编程课程，包含语法基础、面向对象编程等内容",
+    cover: "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=500&q=80",
+    school: "某某大学",
+    major: "计算机科学与技术",
+    grade: "2024级",
+    status: 1,
+    statusDesc: "已发布",
+    tags: "编程,基础,Java",
+    startTime: "2024-09-01",
+    endTime: "2024-12-31",
+    teacherId: 1,
+    teacherName: "张老师",
+    credits: 3,
+    hours: 48,
+    capacity: 50,
+    enrolledCount: 30,
+    createTime: "2024-01-01T12:00:00"
+  },
+  {
+    id: 2,
+    courseCode: "DS202",
+    name: "数据结构与算法",
+    description: "深入探讨常见数据结构（如链表、树、图）和核心算法。",
+    cover: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&q=80",
+    school: "某某大学",
+    major: "计算机科学与技术",
+    grade: "2024级",
+    status: 2,
+    statusDesc: "进行中",
+    tags: "核心,算法,数据结构",
+    startTime: "2024-09-01",
+    endTime: "2024-12-31",
+    teacherId: 1,
+    teacherName: "张老师",
+    credits: 4,
+    hours: 64,
+    capacity: 45,
+    enrolledCount: 45,
+    createTime: "2024-01-02T12:00:00"
+  },
+   {
+    id: 3,
+    courseCode: "WEB301",
+    name: "Web前端开发",
+    description: "学习HTML, CSS, JavaScript以及现代前端框架Vue.js。",
+    cover: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=500&q=80",
+    school: "某某大学",
+    major: "软件工程",
+    grade: "2023级",
+    status: 0,
+    statusDesc: "草稿",
+    tags: "前端,Vue,实战",
+    startTime: "2024-09-01",
+    endTime: "2024-12-31",
+    teacherId: 1,
+    teacherName: "张老师",
+    credits: 3,
+    hours: 48,
+    capacity: 60,
+    enrolledCount: 0,
+    createTime: "2024-02-10T12:00:00"
+  },
+  {
+    id: 4,
+    courseCode: "DB401",
+    name: "数据库系统原理",
+    description: "介绍关系数据库模型、SQL语言以及数据库设计范式。",
+    cover: "https://images.unsplash.com/photo-1593435713504-a83015db54e9?w=500&q=80",
+    school: "某某大学",
+    major: "计算机科学与技术",
+    grade: "2023级",
+    status: 3,
+    statusDesc: "已结束",
+    tags: "数据库,SQL,后端",
+    startTime: "2023-09-01",
+    endTime: "2023-12-31",
+    teacherId: 1,
+    teacherName: "张老师",
+    credits: 3,
+    hours: 48,
+    capacity: 50,
+    enrolledCount: 48,
+    createTime: "2023-01-15T12:00:00"
+  }
+];
 
 export const handlers = [
   // 添加登录接口的模拟
@@ -448,6 +555,130 @@ export const handlers = [
       code: 200,
       message: `获取会话 ${conversationId} 历史成功 (MSW)`,
       data: mockMessages,
+    });
+  }),
+
+  // ==================== 课程管理模拟 ====================
+
+  // Mock for creating a new course
+  // Corresponds to API Spec 1.1: POST /course/create
+  http.post(`${API_PREFIX}/course/create`, async ({ request }) => {
+    const courseData = await request.json() as Record<string, any>;
+    
+    console.log('MSW: 拦截到创建课程请求', courseData);
+
+    if (!courseData.name || !courseData.courseCode || !courseData.teacherId) {
+      return HttpResponse.json({
+        code: 400,
+        message: '课程名称、代码和教师ID是必填项',
+        data: null
+      }, { status: 200 }); // 返回HTTP 200但业务码为400
+    }
+
+    const statusDescMap = ["草稿", "已发布", "进行中", "已结束", "已取消"];
+    const newCourse = {
+      id: Date.now(),
+      courseCode: courseData.courseCode,
+      name: courseData.name,
+      description: courseData.description || "暂无描述",
+      cover: courseData.cover || `https://source.unsplash.com/random/400x225?course,${courseData.name}`,
+      school: courseData.school,
+      major: courseData.major,
+      grade: courseData.grade,
+      status: courseData.status,
+      statusDesc: statusDescMap[courseData.status] || "未知",
+      tags: courseData.tags || "",
+      startTime: courseData.startTime,
+      endTime: courseData.endTime,
+      teacherId: courseData.teacherId,
+      teacherName: courseData.teacherName,
+      credits: courseData.credits,
+      hours: courseData.hours,
+      capacity: courseData.capacity,
+      enrolledCount: 0,
+      createTime: new Date().toISOString()
+    };
+    
+    mockCoursesDb.unshift(newCourse);
+
+    return HttpResponse.json({
+      code: 200,
+      message: '课程创建成功 (MSW)',
+      data: newCourse
+    });
+  }),
+
+  // Mock for fetching a teacher's courses with pagination
+  // Corresponds to a hypothetical API Spec: GET /course/teacher/{teacherId}
+  http.get(`${API_PREFIX}/course/teacher/:teacherId`, ({ request, params }) => {
+    const { teacherId } = params;
+
+    if (!teacherId || Array.isArray(teacherId)) {
+        return HttpResponse.json({ code: 400, message: '无效的教师ID' }, { status: 400 });
+    }
+
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1', 10);
+    const pageSize = parseInt(url.searchParams.get('pageSize') || '10', 10);
+
+    console.log(`MSW: 拦截到获取教师 ${teacherId} 的课程列表请求`, { page, pageSize });
+
+    const teacherCourses = mockCoursesDb.filter(c => c.teacherId.toString() === teacherId);
+    
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const records = teacherCourses.slice(start, end);
+    
+    return HttpResponse.json({
+      code: 200,
+      message: "查询成功 (MSW)",
+      data: {
+        records,
+        total: teacherCourses.length,
+        size: pageSize,
+        current: page,
+        pages: Math.ceil(teacherCourses.length / pageSize),
+      },
+    });
+  }),
+
+  // Mock for file upload
+  http.post(`${API_PREFIX}/files/upload`, async ({ request }) => {
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+
+    console.log('MSW: 拦截到文件上传请求', file);
+
+    if (!file) {
+      return HttpResponse.json({
+        code: 400,
+        message: '没有找到上传的文件 (MSW)',
+        data: null
+      });
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      return HttpResponse.json({
+        code: 413,
+        message: '文件大小超过2MB限制 (MSW)',
+        data: null
+      });
+    }
+
+    const fileId = `mock_file_${Date.now()}`;
+    const fileExtension = file.name.split('.').pop() || 'jpg';
+
+    return HttpResponse.json({
+      code: 200,
+      message: "操作成功 (MSW)",
+      data: {
+        originalFileName: file.name,
+        fileName: `${fileId}.${fileExtension}`,
+        fileSize: file.size,
+        contentType: file.type,
+        fileUrl: `/uploads/images/mock/${fileId}.${fileExtension}`,
+        uploadTime: Date.now()
+      }
     });
   }),
 ] 

@@ -383,3 +383,71 @@ export const getConversationMessages_method = async (conversationId: number) => 
     throw error;
   }
 }
+
+// ==================== 课程管理接口 ====================
+
+// 定义课程创建接口的参数类型
+interface CreateCourseParams {
+  courseCode: string;
+  name: string;
+  description?: string;
+  cover?: string;
+  school: string;
+  major: string;
+  grade: string;
+  status: number;
+  tags?: string;
+  startTime?: string;
+  endTime?: string;
+  teacherId: number;
+  teacherName: string;
+  credits?: number;
+  hours?: number;
+  capacity?: number;
+}
+
+export const createCourse_method = async (courseData: CreateCourseParams) => {
+  try {
+    const response = await apiClient.post('/course/create', courseData);
+    if (response.data.code === 200) {
+      ElMessage.success('课程创建成功！');
+      return response.data;
+    } else {
+      ElMessage.error(response.data.message || '创建课程失败');
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!errorMessage.includes('创建课程失败')) {
+        ElMessage.error(`创建课程失败: ${errorMessage}`);
+    }
+    throw error;
+  }
+};
+
+/**
+ * 1.2 查询教师的课程列表
+ * @param params 包含 teacherId 和分页信息
+ */
+export const queryCourses_method = async (params: { teacherId: number; page?: number; pageSize?: number }) => {
+  try {
+    const response = await apiClient.get(`/course/teacher/${params.teacherId}`, {
+      params: {
+        page: params.page || 1,
+        pageSize: params.pageSize || 10,
+      }
+    });
+    if (response.data.code === 200) {
+      return response.data;
+    } else {
+      ElMessage.error(response.data.message || '获取课程列表失败');
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!errorMessage.includes('获取课程列表失败')) {
+        ElMessage.error(`获取课程列表失败: ${errorMessage}`);
+    }
+    throw error;
+  }
+};
