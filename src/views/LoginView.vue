@@ -40,7 +40,7 @@ const currentFieldName = computed(() => `${selectedIdentity.value}Number`);
 // 登录参数，根据当前身份动态构建
 const loginParams = computed(() => {
   return {
-    identity: selectedIdentity.value,
+  identity: selectedIdentity.value,
     [currentFieldName.value]: accountInput.value,
     password: passwordInput.value,
     rememberMe: rememberMe.value

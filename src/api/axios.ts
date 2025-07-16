@@ -319,6 +319,10 @@ export const getHistory_method = async (page = 1, pageSize = 10) => {
       }
     });
 
+    console.log("得到history的response",response);
+    console.log("得到history的response.data",response.data);
+    console.log("得到history的response.data.code",response.data.code);
+
     if (response.data.code === 200) {
       console.log("获取到分页历史数据:", response.data.data);
       return response.data.data;
