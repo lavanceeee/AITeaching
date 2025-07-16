@@ -288,15 +288,31 @@ export const createConversation_method = async (params: {
 //获取历史会话
 export const getHistory_method = async (page = 1, pageSize = 10) => {
   try {
-    const store = useStudentInfoStore();
-    const studentID = store.userInfo?.id || '123';
+    const identity = localStorage.getItem('identity') || 'student';
+    let userId;
 
-    if (!studentID) {
+    // 根据身份获取对应的 store 和用户 ID
+    if (identity === 'student') {
+      const store = useStudentInfoStore();
+      userId = store.userInfo?.id;
+    } else if (identity === 'teacher') {
+      const store = useTeacherInfoStore();
+      userId = store.userInfo?.id;
+    } else {
+      userId = localStorage.getItem('id');
+    }
+
+    // 如果无法获取用户ID，尝试从localStorage获取
+    if (!userId) {
+      userId = localStorage.getItem('id');
+    }
+
+    if (!userId) {
       ElMessage.error('无法获取用户ID，请重新登录');
       throw new Error('User ID not found');
     }
 
-    const response = await apiClient.get(`ai/conversation/user/${studentID}`, {
+    const response = await apiClient.get(`ai/conversation/user/${userId}`, {
       params: {
         page,
         pageSize,

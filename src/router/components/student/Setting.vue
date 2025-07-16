@@ -189,15 +189,6 @@ const userInfo = computed(() => {
   return {}; // 默认返回空对象
 });
 
-// 如果需要测试数据
-// onMounted(() => {
-//   if (isStudent.value) {
-//     studentStore.setTestInfo();
-//   } else if (isTeacher.value) {
-//     teacherStore.setTestInfo();
-//   }
-// });
-
 const isUpdateInfoVisible = ref(false);
 
 const showUpdateInfoDialog = () => {
