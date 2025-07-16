@@ -20,7 +20,7 @@
                     </div>
                     <div class="user-info" v-show="!isCollapsed">
                         <div class="user-id">工号：{{ teacherNumber }}</div>
-                        <div class="user-major">院系：{{ department }}</div>
+                        <div class="user-major">姓名：{{ realName }}</div>
                     </div>
                 </div>
                 
@@ -83,24 +83,19 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue';
-import { getUserInfo_method } from '../api/axios';
-// import { useTeacherInfoStore } from '../store/teacherInfoStore';
-// import { getTeacherInfo_method } from '../api/axios';
+import { ref, computed, onMounted } from 'vue';
+import { useTeacherInfoStore } from '../store/teacherInfoStore'; 
+import { getUserInfo_method } from '../api/axios'; // 确保导入了该方法
 
-// const store = useTeacherInfoStore();
+const teacherStore = useTeacherInfoStore();
 
-// 使用 computed 来确保数据是响应式的
-// const teacherNumber = computed(() => store.userInfo?.teacherNumber || 'N/A');
-// const department = computed(() => store.userInfo?.department || 'N/A');
-// const avatarUrl = computed(() => store.userInfo?.avatar || 'https://pic.616pic.com/ys_bnew_img/00/42/51/nLWA3fYywP.jpg');
+const teacherNumber = computed(() => teacherStore.userInfo?.teacherNumber);
+const realName = computed(() => teacherStore.userInfo?.realName);
+const avatarUrl = computed(() => teacherStore.userInfo?.avatar);
 
-
-//加载钩子发送信息请求
-onMounted(()=>{
-    //获取教师信息
+onMounted(() => {
     getUserInfo_method();
-})
+});
 
 //折叠状态
 const isCollapsed = ref(true);
