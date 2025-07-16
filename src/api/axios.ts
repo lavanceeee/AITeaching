@@ -298,11 +298,11 @@ export const getHistory_method = async (page = 1, pageSize = 10) => {
     } else if (identity === 'teacher') {
       const store = useTeacherInfoStore();
       userId = store.userInfo?.id;
+      console.log("得到history教师的id",userId);
     } else {
       userId = localStorage.getItem('id');
     }
 
-    // 如果无法获取用户ID，尝试从localStorage获取
     if (!userId) {
       userId = localStorage.getItem('id');
     }

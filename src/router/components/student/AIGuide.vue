@@ -106,6 +106,7 @@
 <script setup>
 import { ref, onMounted, computed, onBeforeUnmount } from "vue";
 import { useStudentInfoStore } from "../../../store/studentInfoStore";
+import { useTeacherInfoStore } from "../../../store/teacherInfoStore";
 import { useAIChatStore } from "../../../store/AIChatStore";
 import { 
   streamChat_method, 
@@ -120,7 +121,19 @@ const messageQueue = ref([]);
 
 // --- Stores ---
 const studentStore = useStudentInfoStore();
-const userInfo = computed(() => studentStore.userInfo);
+const teacherStore = useTeacherInfoStore();
+
+// 根据用户身份获取正确的用户信息
+const userIdentity = localStorage.getItem('identity') || 'student';
+const userInfo = computed(() => {
+  if (userIdentity === 'student') {
+    return studentStore.userInfo;
+  } else if (userIdentity === 'teacher') {
+    return teacherStore.userInfo;
+  }
+  return studentStore.userInfo; // 默认返回学生信息
+});
+
 // AI Store仅用于会话成功后保存元数据
 const aiChatStore = useAIChatStore();
 
