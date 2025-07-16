@@ -142,7 +142,7 @@ const formRef = ref(null);
 const isSubmitting = ref(false);
 const teacherStore = useTeacherInfoStore();
 const token = localStorage.getItem('token');
-const uploadUrl = `${BASE_URL}/files/upload`;
+const uploadUrl = `${BASE_URL}/upload/image`;
 
 const initialFormState = () => ({
   name: '',
