@@ -3,6 +3,7 @@ import { BASE_URL } from './config'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import router from '../router';
 import { useStudentInfoStore } from '../store/studentInfoStore';
+import { useTeacherInfoStore } from '../store/teacherInfoStore';
 import { useAIChatStore } from '../store/AIChatStore';
 
 // 创建 axios 实例
@@ -86,7 +87,7 @@ export const login_method = async (params: LoginParams)=>{
       //有问题
       localStorage.setItem('token', response.data.data.token)
       localStorage.setItem('identity', params.identity)
-      // localStorage.setItem('id', response.data.data.student.id)
+      localStorage.setItem('id', response.data.data[`${params.identity}`].id)
 
       //跳转
       router.push(`/${params.identity}/dashboard`)
@@ -125,66 +126,127 @@ export const register_method = async (params: RegisterParams)=>{
 
 //验证手机号，邮箱，学号是否已经存在
 
-
-//获取学生的信息: 使用学号
-export const getStudentInfo_method = async ()=> {
+//获取用户信息
+export const getUserInfo_method = async ()=> {
     try{
     const identity = localStorage.getItem('identity')
-    const studentID = localStorage.getItem('id')
+    const userID = localStorage.getItem('id')
+    
+    if (!identity || !userID) {
+      ElMessage.error('无法获取用户信息，请重新登录');
+      throw new Error('Missing identity or user ID');
+    }
+
     //根据ID获取详细信息
-    const response = await apiClient.get(`${identity}/${studentID}`)
+    const response = await apiClient.get(`${identity}/${userID}`)
 
     if (response.data.code == 200) {
-      //拿到了用户的所有的信息，保存在pinia
       const userInfo = response.data.data
-      const store = useStudentInfoStore();
-      store.saveStudentInfo(userInfo)
+      
+      if (identity === 'student') {
+        const store = useStudentInfoStore();
+        store.saveStudentInfo(userInfo);
+      } else if (identity === 'teacher') {
+        const store = useTeacherInfoStore();
+        store.saveTeacherInfo(userInfo);
+
+        console.log(userInfo);
+      } else {
+        ElMessage.warning(`未知的用户身份类型: ${identity}`);
+      }
     }
     else {
+      // 清除所有可能的用户信息
+      if (identity === 'student') {
+        const store = useStudentInfoStore();
+        store.clearStudentInfo();
+      } else if (identity === 'teacher') {
+        const store = useTeacherInfoStore();
+        store.clearTeacherInfo();
+      }
+    }
+
+  } catch (error) {
+    const identity = localStorage.getItem('identity');
+    if (identity === 'student') {
       const store = useStudentInfoStore();
       store.clearStudentInfo();
+    } else if (identity === 'teacher') {
+      const store = useTeacherInfoStore();
+      store.clearTeacherInfo();
     }
-
-  } catch (error) {
-    const store = useStudentInfoStore();
-    store.clearStudentInfo();
-    ElMessage.error(`获取学生信息失败，${error}`);
+    
+    ElMessage.error(`获取用户信息失败，${error}`);
     throw error;
   }
 }
 
-//更新学生信息
-export const updateStudentInfo_method = async (updatedFields: Record<string, any>) => {
+// 保留学生端旧方法名
+export const getStudentInfo_method = getUserInfo_method;
+
+//更新用户信息
+export const updateUserInfo_method = async (updatedFields: Record<string, any>) => {
   try {
     const identity = localStorage.getItem('identity');
-
-    const store = useStudentInfoStore();
-    if (store.userInfo) {
-
-      //使用put请求，只发送更新过的字段
-      const response = await apiClient.put(`${identity}/update`, updatedFields);
-
-      if (response.data.code == 200) {
-        ElMessage.success(response.data.message);
-        // 更新成功后，同步更新 Pinia 中的状态
-        const newInfo = { ...store.userInfo, ...updatedFields };
-        store.saveStudentInfo(newInfo);
-
-        //刷新信息
-        getStudentInfo_method();
-      }
-      else {
-        ElMessage.error(response.data.message);
-      }
+    
+    if (!identity) {
+      ElMessage.error('无法确定用户身份，请重新登录');
+      throw new Error('Missing identity');
     }
-    else {
-      ElMessage.error('用户信息不存在');
+
+    // 根据身份选择不同的store
+    if (identity === 'student') {
+      const store = useStudentInfoStore();
+      if (store.userInfo) {
+        //使用put请求，只发送更新过的字段
+        const response = await apiClient.put(`${identity}/update`, updatedFields);
+
+        if (response.data.code == 200) {
+          ElMessage.success(response.data.message);
+          // 更新成功后，同步更新 Pinia 中的状态
+          const newInfo = { ...store.userInfo, ...updatedFields };
+          store.saveStudentInfo(newInfo);
+
+          // 刷新信息
+          getUserInfo_method();
+        } else {
+          ElMessage.error(response.data.message);
+        }
+      } else {
+        ElMessage.error('用户信息不存在');
+      }
+    } else if (identity === 'teacher') {
+      const store = useTeacherInfoStore();
+      if (store.userInfo) {
+        //使用put请求，只发送更新过的字段
+        const response = await apiClient.put(`${identity}/update`, updatedFields);
+
+        if (response.data.code == 200) {
+          ElMessage.success(response.data.message);
+          // 更新成功后，同步更新 Pinia 中的状态
+          const newInfo = { ...store.userInfo, ...updatedFields };
+          store.saveTeacherInfo(newInfo);
+
+          // 刷新信息
+          getUserInfo_method();
+        } else {
+          ElMessage.error(response.data.message);
+        }
+      } else {
+        ElMessage.error('用户信息不存在');
+      }
+    } else {
+      ElMessage.error('不支持的用户身份类型');
+      throw new Error(`Unsupported identity: ${identity}`);
     }
   } catch (error) {
-    ElMessage.error(`更新学生信息失败，${error}`);
+    ElMessage.error(`更新用户信息失败，${error}`);
     throw error;
   }
 }
+
+// 保留旧方法名称以保持向后兼容性
+export const updateStudentInfo_method = updateUserInfo_method;
 
 //fetchAPI 返回事件流
 export const streamChat_method = (params: { message: string, memoryId?: string }) => {

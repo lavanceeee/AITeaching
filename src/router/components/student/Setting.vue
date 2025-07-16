@@ -21,8 +21,9 @@
         <div class="profile-info">
           <el-avatar :size="48" :src="userInfo.avatar"/>
           <div class="info-text">
-            <span class="profile-detail">姓名：{{ userInfo.username }}</span>
-            <span class="profile-detail">学号: {{ userInfo.studentNumber }}</span>
+            <span class="profile-detail">姓名：{{ userInfo.realName || userInfo.username }}</span>
+            <span class="profile-detail" v-if="isStudent">学号: {{ userInfo.studentNumber }}</span>
+            <span class="profile-detail" v-else-if="isTeacher">工号: {{ userInfo.teacherNumber }}</span>
           </div>
         </div>
         <div class="profile-actions">
@@ -40,8 +41,8 @@
       </div>
     </div>
 
-    <!-- Detailed Info (Collapsible) -->
-    <div class="settings-section">
+    <!-- Detailed Info (Collapsible) - Student View -->
+    <div class="settings-section" v-if="isStudent">
       <h2 class="section-title">详细资料设置</h2>
       <p class="section-description">以下是您的详细个人资料，部分信息可能无法自行修改。</p>
       
@@ -95,18 +96,72 @@
       </div>
     </div>
 
+    <!-- Detailed Info (Collapsible) - Teacher View -->
+    <div class="settings-section" v-else-if="isTeacher">
+      <h2 class="section-title">教师资料设置</h2>
+      <p class="section-description">以下是您的详细个人资料，部分信息可能无法自行修改。</p>
+      
+      <div class="collapsible-container">
+        <div class="settings-list-item" @click="toggleDetails">
+          <div class="item-content">
+            <el-icon><Memo /></el-icon>
+            <span>详细个人信息</span>
+          </div>
+          <el-icon class="chevron-icon" :class="{ 'is-expanded': isDetailsVisible }"><ArrowRight /></el-icon>
+        </div>
+        
+        <el-collapse-transition>
+          <div v-show="isDetailsVisible" class="details-content">
+            <!-- Personal Info -->
+            <div class="detail-category">
+              <h4>基础信息</h4>
+              <div class="detail-item"><span>真实姓名</span><span>{{ userInfo.realName }}</span></div>
+              <div class="detail-item"><span>用户名</span><span>{{ userInfo.username }}</span></div>
+              <div class="detail-item"><span>身份证号</span><span>{{ userInfo.idCard }}</span></div>
+              <div class="detail-item"><span>状态</span><span>{{ userInfo.status === 1 ? '正常' : '禁用' }}</span></div>
+              <div class="detail-item"><span>管理权限</span><span>{{ userInfo.isAdmin === 1 ? '是' : '否' }}</span></div>
+            </div>
+            
+            <!-- Contact Info -->
+            <div class="detail-category">
+              <h4>联系方式</h4>
+              <div class="detail-item"><span>邮箱</span><span>{{ userInfo.email }}</span></div>
+              <div class="detail-item"><span>手机号</span><span>{{ userInfo.phone }}</span></div>
+            </div>
+
+            <!-- School Info -->
+            <div class="detail-category">
+              <h4>单位信息</h4>
+              <div class="detail-item"><span>学校</span><span>{{ userInfo.school }}</span></div>
+            </div>
+
+            <!-- Permissions -->
+            <div class="detail-category">
+              <h4>系统权限</h4>
+              <div class="permissions-list">
+                <el-tag v-for="permission in userInfo.permissions" :key="permission" size="small" class="permission-tag">
+                  {{ formatPermission(permission) }}
+                </el-tag>
+                <p v-if="!userInfo.permissions || userInfo.permissions.length === 0" class="no-permissions">
+                  暂无特殊权限
+                </p>
+              </div>
+            </div>
+          </div>
+        </el-collapse-transition>
+      </div>
+    </div>
+
   </div>
-  <!-- <div v-else class="loading-state">
-    <p>正在加载用户信息...</p>
-  </div> -->
   
   <!-- Update Info Dialog -->
   <UpdateInfo v-model:visible="isUpdateInfoVisible" />
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useStudentInfoStore } from '../../../store/studentInfoStore';
+import { useTeacherInfoStore } from '../../../store/teacherInfoStore';
 import { ElMessage } from 'element-plus';
 import {
   Delete, Operation, Brush, Download, Plus, Edit, User, TopRight, ArrowRight, Memo,
@@ -115,9 +170,33 @@ import {
 import UpdateInfo from '../../../components/studentCom/UpdateInfo.vue';
 import router from '../../../router';
 
-const store = useStudentInfoStore();
-// store.setTestInfo();
-const userInfo = computed(() => store.userInfo);
+// 根据身份选择对应的 store
+const identity = localStorage.getItem('identity') || 'student';
+const isStudent = computed(() => identity === 'student');
+const isTeacher = computed(() => identity === 'teacher');
+
+// 初始化 store
+const studentStore = useStudentInfoStore();
+const teacherStore = useTeacherInfoStore();
+
+// 根据身份类型获取用户信息
+const userInfo = computed(() => {
+  if (isStudent.value) {
+    return studentStore.userInfo;
+  } else if (isTeacher.value) {
+    return teacherStore.userInfo;
+  }
+  return {}; // 默认返回空对象
+});
+
+// 如果需要测试数据
+// onMounted(() => {
+//   if (isStudent.value) {
+//     studentStore.setTestInfo();
+//   } else if (isTeacher.value) {
+//     teacherStore.setTestInfo();
+//   }
+// });
 
 const isUpdateInfoVisible = ref(false);
 
@@ -138,14 +217,28 @@ const formatGender = (gender) => {
 };
 
 const formatDate = (dateString) => {
-  if (!dateString) return null;
+  if (!dateString) return '未设置';
   return new Date(dateString).toLocaleDateString();
+};
+
+// 格式化权限名称，使其更易读
+const formatPermission = (permission) => {
+  const permissionMap = {
+    'READ_PROFILE': '查看个人资料',
+    'UPDATE_PROFILE': '更新个人资料',
+    'READ_COURSES': '查看课程',
+    'MANAGE_COURSES': '管理课程',
+    'MANAGE_GRADES': '管理成绩',
+    'VIEW_GRADES': '查看成绩'
+  };
+  return permissionMap[permission] || permission;
 };
 
 const handleLogout = () => {
   ElMessage.success('退出登录成功');
   localStorage.removeItem('token');
   localStorage.removeItem('identity');
+  localStorage.removeItem('id');
   router.push('/login');
 };
 </script>
@@ -323,6 +416,24 @@ const handleLogout = () => {
   font-size: 0.875rem;
   color: #606266;
   line-height: 1.5;
+  margin: 0;
+}
+
+.permissions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 0.5rem;
+}
+
+.permission-tag {
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
+
+.no-permissions {
+  color: #909399;
+  font-size: 0.875rem;
   margin: 0;
 }
 </style>

@@ -40,8 +40,8 @@
     <div class="chat-container">
       <transition name="fade">
         <div v-if="messages.length === 0" class="welcome-message">
-          <h2>您的智慧AI教师，欢迎提问</h2>
-          <p>我可以回答您关于学习方面的任何问题</p>
+          <h2>您的智慧AI助手，欢迎提问</h2>
+          <p>我可以回答您的任何问题</p>
         </div>
       </transition>
 

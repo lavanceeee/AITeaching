@@ -25,7 +25,7 @@
                 </div>
                 
                 <nav class="sidebar-menu">
-                    <router-link to="/teacher/ai" custom v-slot="{ navigate, isActive }">
+                    <router-link to="/teacher/dashboard" custom v-slot="{ navigate, isActive }">
                         <div class="menu-item" :class="{ active: isActive }" @click="navigate">
                             <div class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
@@ -33,7 +33,7 @@
                                     <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 2a8 8 0 100 16 8 8 0 000-16zm0 3a5 5 0 11-4.78 3.527A2.499 2.499 0 0112 9.5a2.5 2.5 0 011.473-2.28A5.01 5.01 0 0112 7z" fill="currentColor"/>
                                 </svg>
                             </div>
-                            <span class="menu-text" v-show="!isCollapsed">AI界面</span>
+                            <span class="menu-text" v-show="!isCollapsed">首页</span>
                         </div>
                     </router-link>
                     
@@ -84,6 +84,7 @@
 
 <script setup>
 import { onMounted, ref, computed } from 'vue';
+import { getUserInfo_method } from '../api/axios';
 // import { useTeacherInfoStore } from '../store/teacherInfoStore';
 // import { getTeacherInfo_method } from '../api/axios';
 
@@ -98,7 +99,7 @@ import { onMounted, ref, computed } from 'vue';
 //加载钩子发送信息请求
 onMounted(()=>{
     //获取教师信息
-    // getTeacherInfo_method();
+    getUserInfo_method();
 })
 
 //折叠状态

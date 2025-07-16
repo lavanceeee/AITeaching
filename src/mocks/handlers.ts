@@ -42,6 +42,32 @@ interface LoginRequestParams {
 - 任何其他组合将返回登录失败
 */
 
+/* 
+用户信息获取与更新测试用例：
+1. 获取教师信息 - GET 请求到 /teacher/:teacherId
+   - 返回包含完整教师信息的响应，严格按照后端格式
+   - 字段包括：id, teacherNumber, username, email, phone, realName, idCard, school, status, isAdmin, createTime, updateTime, permissions
+   - 支持任意teacherId，始终返回相同的测试数据
+
+2. 获取学生信息 - GET 请求到 /student/:studentId
+   - 返回包含完整学生信息的响应，包括学号、班级、专业等字段
+   - 支持任意studentId，始终返回相同的测试数据
+
+3. 更新教师信息 - PUT 请求到 /teacher/update
+   - 请求体为要更新的字段集合
+   - 返回成功响应，包含完整的教师信息（更新字段 + 默认值）
+   - 自动更新updateTime字段为当前时间
+
+4. 更新学生信息 - PUT 请求到 /student/update
+   - 请求体为要更新的字段集合
+   - 返回成功响应，包含更新的字段和更新时间
+
+调用示例：
+- getUserInfo_method() 会根据localStorage中的identity和id选择正确的接口
+- 根据登录的用户类型，信息会保存到对应的Pinia store中
+- 教师信息将存储在teacherInfoStore中，字段与后端保持一致
+*/
+
 export const handlers = [
   // 添加登录接口的模拟
   http.post(`${API_PREFIX}/:identity/login`, async ({ params, request }) => {
@@ -92,6 +118,120 @@ export const handlers = [
         data: null
       }, { status: 200 }); // 返回HTTP 200但业务状态码为401
     }
+  }),
+
+  // 添加获取教师信息的模拟
+  http.get(`${API_PREFIX}/teacher/:teacherId`, ({ params }) => {
+    const { teacherId } = params;
+    
+    console.log(`MSW: 拦截到获取教师信息请求，教师ID:${teacherId}`);
+
+    const teacherInfo = {
+      id: teacherId,
+      teacherNumber: "T001",
+      username: "teacher001",
+      email: "teacher@example.com",
+      phone: "13800138000",
+      realName: "张老师",
+      idCard: "110101199001010001",
+      school: "示例大学",
+      status: 1,
+      isAdmin: 0,
+      createTime: "2024-01-01T10:00:00",
+      updateTime: "2024-01-01T10:00:00",
+      permissions: ["READ_PROFILE", "UPDATE_PROFILE", "READ_COURSES", "MANAGE_COURSES", "MANAGE_GRADES", "VIEW_GRADES"]
+    };
+
+    return HttpResponse.json({
+      code: 200,
+      message: "获取教师信息成功",
+      data: teacherInfo
+    });
+  }),
+
+  // 添加获取学生信息的模拟
+  http.get(`${API_PREFIX}/student/:studentId`, ({ params }) => {
+    const { studentId } = params;
+    
+    console.log(`MSW: 拦截到获取学生信息请求，学生ID:${studentId}`);
+
+    // 模拟学生信息
+    const studentInfo = {
+      id: studentId,
+      avatar: "https://pic.616pic.com/ys_bnew_img/00/42/51/nLWA3fYywP.jpg",
+      username: "student_test_001",
+      nickname: "测试小明",
+      email: "test_student@example.com",
+      phone: "13912345678",
+      gender: 1,
+      birthday: "2002-08-15T00:00:00",
+      bio: "这是一位用于测试的学生，喜欢编程和开源项目。",
+      studentNumber: "2024999001",
+      realName: "张小明",
+      idCard: "440101200208151234",
+      grade: "2024",
+      major: "软件工程",
+      className: "软工240T班",
+      school: "前端测试大学",
+      college: "信息科学与技术学院",
+      enrollmentDate: "2024-09-01",
+      graduationDate: "2028-06-30",
+    };
+
+    return HttpResponse.json({
+      code: 200,
+      message: "获取学生信息成功",
+      data: studentInfo
+    });
+  }),
+
+  // 添加更新教师信息的模拟
+  http.put(`${API_PREFIX}/teacher/update`, async ({ request }) => {
+    const updatedFields = await request.json() as Record<string, any>;
+    
+    console.log(`MSW: 拦截到更新教师信息请求`, updatedFields);
+
+    // 模拟成功响应，将所有字段合并到默认数据中
+    const defaultTeacherInfo = {
+      id: 1,
+      teacherNumber: "T001",
+      username: "teacher001",
+      email: "teacher@example.com",
+      phone: "13800138000",
+      realName: "张老师",
+      idCard: "110101199001010001",
+      school: "示例大学",
+      status: 1,
+      isAdmin: 0,
+      createTime: "2024-01-01T10:00:00",
+      updateTime: new Date().toISOString()
+    };
+
+    return HttpResponse.json({
+      code: 200,
+      message: "更新教师信息成功",
+      data: {
+        ...defaultTeacherInfo,
+        ...updatedFields,
+        updateTime: new Date().toISOString()
+      }
+    });
+  }),
+
+  // 添加更新学生信息的模拟
+  http.put(`${API_PREFIX}/student/update`, async ({ request }) => {
+    const updatedFields = await request.json() as Record<string, any>;
+    
+    console.log(`MSW: 拦截到更新学生信息请求`, updatedFields);
+
+    return HttpResponse.json({
+      code: 200,
+      message: "更新学生信息成功",
+      data: {
+        ...updatedFields,
+        updateTime: new Date().toISOString()
+      }
+    });
   }),
 
   // Mock for the streaming chat endpoint

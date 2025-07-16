@@ -27,19 +27,29 @@
               </div>
 
               <div class="info-list">
-
                 <EditableItem field="realName" label="真实姓名" v-model="editableInfo.realName" :is-editing="isEditing"
                   @edit="startEditing" />
-                <EditableItem field="nickname" label="昵称" v-model="editableInfo.nickname" :is-editing="isEditing"
-                  @edit="startEditing" />
-                <EditableItem field="gender" label="性别" v-model="editableInfo.gender" type="gender"
-                  :is-editing="isEditing" @edit="startEditing" />
-                <EditableItem field="birthday" label="生日" v-model="editableInfo.birthday" type="date"
-                  :is-editing="isEditing" @edit="startEditing" />
+                
+                <!-- 学生特有字段 -->
+                <template v-if="isStudent">
+                  <EditableItem field="nickname" label="昵称" v-model="editableInfo.nickname" :is-editing="isEditing"
+                    @edit="startEditing" />
+                  <EditableItem field="gender" label="性别" v-model="editableInfo.gender" type="gender"
+                    :is-editing="isEditing" @edit="startEditing" />
+                  <EditableItem field="birthday" label="生日" v-model="editableInfo.birthday" type="date"
+                    :is-editing="isEditing" @edit="startEditing" />
+                  <EditableItem field="bio" label="个人简介" v-model="editableInfo.bio" type="textarea"
+                    :is-editing="isEditing" @edit="startEditing" />
+                </template>
+
                 <EditableItem field="idCard" label="身份证号" v-model="editableInfo.idCard" :is-editing="isEditing"
                   @edit="startEditing" />
-                <EditableItem field="bio" label="个人简介" v-model="editableInfo.bio" type="textarea"
-                  :is-editing="isEditing" @edit="startEditing" />
+                
+                <!-- 教师特有字段 -->
+                <template v-if="isTeacher">
+                  <EditableItem field="username" label="用户名" v-model="editableInfo.username" :is-editing="isEditing"
+                    @edit="startEditing" />
+                </template>
               </div>
             </div>
           </el-tab-pane>
@@ -58,8 +68,8 @@
             </div>
           </el-tab-pane>
 
-          <!-- 学籍信息 -->
-          <el-tab-pane label="学籍信息" name="academic">
+          <!-- 学籍信息 - 仅学生可见 -->
+          <el-tab-pane v-if="isStudent" label="学籍信息" name="academic">
             <div class="tab-content">
               <h3>学籍信息</h3>
               <p>您的学籍档案，部分关键信息可能需要联系管理员修改。</p>
@@ -82,6 +92,20 @@
             </div>
           </el-tab-pane>
 
+          <!-- 教师信息 - 仅教师可见 -->
+          <el-tab-pane v-if="isTeacher" label="教师信息" name="teacher">
+            <div class="tab-content">
+              <h3>教师信息</h3>
+              <p>您的教师信息，部分信息可能需要联系管理员修改。</p>
+              <div class="info-list">
+                <EditableItem field="school" label="学校" v-model="editableInfo.school" :is-editing="isEditing"
+                  @edit="startEditing" />
+                <EditableItem field="teacherNumber" label="教师工号" v-model="editableInfo.teacherNumber" :is-editing="isEditing"
+                  @edit="startEditing" disabled />
+              </div>
+            </div>
+          </el-tab-pane>
+
         </el-tabs>
       </div>
     </el-scrollbar>
@@ -96,11 +120,12 @@
 </template>
 
 <script setup>
-import { ref, watch, reactive, defineAsyncComponent } from 'vue';
+import { ref, watch, reactive, defineAsyncComponent, computed } from 'vue';
 import { useStudentInfoStore } from '../../store/studentInfoStore';
+import { useTeacherInfoStore } from '../../store/teacherInfoStore';
 import { ElMessage } from 'element-plus';
 import _ from 'lodash';
-import { updateStudentInfo_method } from '../../api/axios';
+import { updateUserInfo_method } from '../../api/axios';
 import { Plus } from '@element-plus/icons-vue';
 import { BASE_URL, Image_URL } from '../../api/config'
 
@@ -112,7 +137,26 @@ const EditableItem = defineAsyncComponent(() =>
   import('./EditableItem.vue')
 );
 
-let token = ref(localStorage.getItem('token'))
+let token = ref(localStorage.getItem('token'));
+
+// 根据身份选择对应的 store
+const identity = localStorage.getItem('identity') || 'student';
+const isStudent = computed(() => identity === 'student');
+const isTeacher = computed(() => identity === 'teacher');
+
+// 初始化 store
+const studentStore = useStudentInfoStore();
+const teacherStore = useTeacherInfoStore();
+
+// 根据身份获取对应的store
+const userStore = computed(() => {
+  if (isStudent.value) {
+    return studentStore;
+  } else if (isTeacher.value) {
+    return teacherStore;
+  }
+  return studentStore; // 默认使用学生store
+});
 
 const props = defineProps({
   visible: {
@@ -123,7 +167,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible']);
 
-const store = useStudentInfoStore();
 const dialogVisible = ref(props.visible);
 const activeTab = ref('basic');
 
@@ -134,10 +177,10 @@ watch(() => props.visible, (newVal) => {
   dialogVisible.value = newVal;
   if (newVal) {
     // 使用 lodash 的深拷贝，确保数据隔离
-    Object.assign(editableInfo, _.cloneDeep(store.userInfo));
+    Object.assign(editableInfo, _.cloneDeep(userStore.value.userInfo));
     if (!editableInfo.avatar) {
       // 提供一个默认头像，防止src为空
-      editableInfo.avatar = "https://cuhttps://pic.616pic.com/ys_bnew_img/00/42/51/nLWA3fYywP.jpgbe.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png";
+      editableInfo.avatar = "https://pic.616pic.com/ys_bnew_img/00/42/51/nLWA3fYywP.jpg";
     }
     isEditing.value = null; // 重置编辑状态
   }
@@ -181,7 +224,7 @@ const beforeAvatarUpload = (rawFile) => {
 
 //点击保存按钮
 const handleSave = async () => {
-  const originalUserInfo = store.userInfo;
+  const originalUserInfo = userStore.value.userInfo;
   const changedFields = {};
 
   if (!originalUserInfo) {
@@ -205,16 +248,11 @@ const handleSave = async () => {
     return;
   }
 
-  //axios请求
-  //将修改过的信息单独封装，并发给后端
   try {
-    // 调用更新方法，只传递包含已更改字段的对象
-    // 成功/失败的消息和 store 的更新已在 axios.ts 中统一处理
-
-    //添加学生的id
-    changedFields.id = store.userInfo.id;
-    //发送数据
-    await updateStudentInfo_method(changedFields);
+    // 添加用户ID
+    changedFields.id = originalUserInfo.id;
+    // 使用通用的用户信息更新方法，会根据身份自动选择正确的接口
+    await updateUserInfo_method(changedFields);
   } finally {
     // 无论请求成功与否，都重置编辑状态并关闭对话框
     isEditing.value = null;

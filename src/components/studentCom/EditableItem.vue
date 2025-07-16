@@ -1,12 +1,12 @@
 <template>
-  <div class="editable-item" @click="handleClick" :class="{ 'is-editing': editingActive }">
+  <div class="editable-item" @click="handleClick" :class="{ 'is-editing': editingActive, 'is-disabled': disabled }">
     <div class="item-label">{{ label }}</div>
     <div class="item-value">
       <transition name="value-fade" mode="out-in">
         <!-- Display Mode -->
         <div v-if="!editingActive" class="value-display">
           <span>{{ displayValue || '点击编辑' }}</span>
-          <el-icon class="edit-icon"><EditPen /></el-icon>
+          <el-icon v-if="!disabled" class="edit-icon"><EditPen /></el-icon>
         </div>
         
         <!-- Edit Mode -->
@@ -16,6 +16,7 @@
             v-model="internalValue"
             ref="inputRef"
             size="small"
+            :disabled="disabled"
             @blur="emit('edit', null)"
           />
           <el-input
@@ -25,6 +26,7 @@
             type="textarea"
             :rows="3"
             size="small"
+            :disabled="disabled"
             @blur="emit('edit', null)"
           />
           <el-select
@@ -33,6 +35,7 @@
             ref="inputRef"
             size="small"
             placeholder="请选择"
+            :disabled="disabled"
             @change="emit('edit', null)"
           >
             <el-option label="男" :value="1"></el-option>
@@ -45,6 +48,7 @@
             type="date"
             placeholder="选择日期"
             size="small"
+            :disabled="disabled"
             @change="emit('edit', null)"
           />
         </div>
@@ -65,6 +69,10 @@ const props = defineProps({
   type: {
     type: String,
     default: 'text' // text, textarea, date, gender
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -84,7 +92,7 @@ watch(internalValue, (newVal) => {
 const editingActive = computed(() => props.isEditing === props.field);
 
 const handleClick = () => {
-  if (!editingActive.value) {
+  if (!editingActive.value && !props.disabled) {
     emit('edit', props.field);
   }
 };
@@ -110,7 +118,7 @@ const displayValue = computed(() => {
 
 // Auto-focus the input when it becomes active
 watch(editingActive, async (isEditing) => {
-  if (isEditing) {
+  if (isEditing && !props.disabled) {
     await nextTick();
     if (inputRef.value) {
         if (typeof inputRef.value.focus === 'function') {
@@ -136,8 +144,13 @@ watch(editingActive, async (isEditing) => {
   min-height: 50px;
 }
 
-.editable-item:not(.is-editing):hover {
+.editable-item:not(.is-editing):not(.is-disabled):hover {
   background-color: #f5f7fa;
+}
+
+.is-disabled {
+  cursor: default;
+  opacity: 0.8;
 }
 
 .item-label {
@@ -170,7 +183,7 @@ watch(editingActive, async (isEditing) => {
   color: #c0c4cc;
 }
 
-.editable-item:not(.is-editing):hover .edit-icon {
+.editable-item:not(.is-editing):not(.is-disabled):hover .edit-icon {
   visibility: visible;
   opacity: 1;
   transform: scale(1.1);

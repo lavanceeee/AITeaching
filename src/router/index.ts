@@ -13,7 +13,6 @@ import Setting from './components/student/Setting.vue'
 import MainPageTea from '../views/MainPageTea.vue'
 import ClassManguage_tea from './components/teacher/ClassManguage.vue'
 import ProjectManguage_tea from './components/teacher/ProjectManguage.vue'
-import Setting_tea from './components/teacher/Setting.vue'
 
 const routes: RouteRecordRaw[] = [
     {path: '/', redirect: '/login'},
@@ -71,7 +70,7 @@ const routes: RouteRecordRaw[] = [
             {
                 path: 'setting',
                 name: 'Setting',
-                component: Setting_tea
+                component: Setting
             }
         ]
     }
