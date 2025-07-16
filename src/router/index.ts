@@ -41,7 +41,7 @@ const routes: RouteRecordRaw[] = [
             },
             {
                 path: 'setting',
-                name: 'Setting',
+                name: 'StudentSetting',
                 component: Setting
             }
         ] 
@@ -69,7 +69,7 @@ const routes: RouteRecordRaw[] = [
             },
             {
                 path: 'setting',
-                name: 'Setting',
+                name: 'TeacherSetting',
                 component: Setting
             }
         ]
