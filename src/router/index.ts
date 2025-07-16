@@ -51,10 +51,10 @@ const routes: RouteRecordRaw[] = [
         path: '/teacher',
         name: 'Teacher',
         component: MainPageTea,
-        redirect: '/teacher/ai',
+        redirect: '/teacher/dashboard',
         children: [
             {
-                path: 'ai',
+                path: 'dashboard',
                 name: 'AIGuide',
                 component: AIGuide
             },

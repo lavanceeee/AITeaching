@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { login_method } from "../api/axios";
 import { useRouter } from "vue-router";
 
@@ -27,18 +27,31 @@ const identityOptions = [
 // 当前选中的身份
 const selectedIdentity = ref("student");
 
-//初始化loginParams
-const loginParams = ref({
-  identity: "student",
-  studentNumber: "",
-  password: "",
-  rememberMe: true,
+// 账号输入值
+const accountInput = ref("");
+// 密码输入值
+const passwordInput = ref("");
+// 记住我
+const rememberMe = ref(true);
+
+// 计算当前应该使用的字段名
+const currentFieldName = computed(() => `${selectedIdentity.value}Number`);
+
+// 登录参数，根据当前身份动态构建
+const loginParams = computed(() => {
+  return {
+    identity: selectedIdentity.value,
+    [currentFieldName.value]: accountInput.value,
+    password: passwordInput.value,
+    rememberMe: rememberMe.value
+  };
 });
 
 // 选择身份的方法
 const selectIdentity = (identity: string) => {
   selectedIdentity.value = identity;
-  loginParams.value.identity = identity;
+  // 切换身份时清空账号输入，避免混淆
+  accountInput.value = "";
 };
 
 // 计算滑块的样式
@@ -49,6 +62,16 @@ const sliderStyle = computed(() => {
   return {
     transform: `translateY(${index * 100}%)`,
   };
+});
+
+// 计算当前账号输入框的提示文本
+const accountPlaceholder = computed(() => {
+  const identityMap: Record<string, string> = {
+    student: "请输入学号",
+    teacher: "请输入教师工号",
+    admin: "请输入管理员账号"
+  };
+  return identityMap[selectedIdentity.value];
 });
 
 //登录
@@ -89,10 +112,10 @@ const goToRegister = () => {
           <div class="form-container">
             <div class="input-group">
               <input
-                type="email"
-                placeholder="请输入学号"
+                type="text"
+                :placeholder="accountPlaceholder"
                 class="login-input"
-                v-model="loginParams.studentNumber"
+                v-model="accountInput"
               />
             </div>
 
@@ -101,7 +124,7 @@ const goToRegister = () => {
                 type="password"
                 placeholder="请输入密码"
                 class="login-input"
-                v-model="loginParams.password"
+                v-model="passwordInput"
               />
             </div>
 

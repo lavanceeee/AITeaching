@@ -22,7 +22,78 @@ interface BatchCreateMessagesParams {
   }>;
 }
 
+// 添加登录参数接口定义
+interface LoginRequestParams {
+  identity: string;
+  password: string;
+  rememberMe: boolean;
+  [key: string]: string | boolean; // 用于动态字段如 studentNumber, teacherNumber
+}
+
+/* 
+登录测试用例：
+1. 学生登录 - 用户名：student123 密码：123456
+2. 教师登录 - 用户名：teacher123 密码：123456
+3. 管理员登录 - 用户名：admin123 密码：123456
+使用示例：
+- 学生登录成功：studentNumber=student123, password=123456
+- 教师登录成功：teacherNumber=teacher123, password=123456
+- 管理员登录成功：adminNumber=admin123, password=123456
+- 任何其他组合将返回登录失败
+*/
+
 export const handlers = [
+  // 添加登录接口的模拟
+  http.post(`${API_PREFIX}/:identity/login`, async ({ params, request }) => {
+    const { identity } = params;
+    const requestBody = await request.json() as LoginRequestParams;
+    
+    console.log(`MSW: 拦截到${identity}登录请求`, requestBody);
+
+    // 简单的凭证验证
+    const validCredentials: Record<string, {[key: string]: string}> = {
+      student: { studentNumber: 'student123', password: '123456' },
+      teacher: { teacherNumber: 'teacher123', password: '123456' },
+      admin: { adminNumber: 'admin123', password: '123456' }
+    };
+
+    const identityCredential = `${identity}Number`;
+    
+    // 确保身份存在于有效凭证中
+    if (!validCredentials[identity as string]) {
+      return HttpResponse.json({
+        code: 400,
+        message: '无效的身份类型',
+        data: null
+      });
+    }
+    
+    const isValid = 
+      requestBody[identityCredential] === validCredentials[identity as string][identityCredential] && 
+      requestBody.password === validCredentials[identity as string].password;
+
+    if (isValid) {
+      return HttpResponse.json({
+        code: 200,
+        message: '登录成功',
+        data: {
+          token: `mock-token-${identity}-${Date.now()}`,
+          [identity as string]: {
+            id: `mock-${identity}-id-123`,
+            name: `测试${identity === 'student' ? '学生' : (identity === 'teacher' ? '教师' : '管理员')}`,
+            [identityCredential]: requestBody[identityCredential]
+          }
+        }
+      });
+    } else {
+      return HttpResponse.json({
+        code: 401,
+        message: '用户名或密码错误',
+        data: null
+      }, { status: 200 }); // 返回HTTP 200但业务状态码为401
+    }
+  }),
+
   // Mock for the streaming chat endpoint
   http.post(`${API_PREFIX}/ai/common/chat`, async ({ request }) => {
     const formData = await request.formData();

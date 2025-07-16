@@ -61,7 +61,7 @@ apiClient.interceptors.response.use(
 //登录参数
 interface LoginParams {
   identity: string; //身份标识
-  studentNumber: string;
+  [key: string]: string | boolean;
   password: string;
   rememberMe: boolean;
 }
@@ -86,7 +86,7 @@ export const login_method = async (params: LoginParams)=>{
       //有问题
       localStorage.setItem('token', response.data.data.token)
       localStorage.setItem('identity', params.identity)
-      localStorage.setItem('id', response.data.data.student.id)
+      // localStorage.setItem('id', response.data.data.student.id)
 
       //跳转
       router.push(`/${params.identity}/dashboard`)
