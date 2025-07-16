@@ -74,8 +74,8 @@ interface RegisterParams {
 }
 
 //登录
-export const login_method = async (params: LoginParams)=>{
-    try{
+export const login_method = async (params: LoginParams) => {
+  try {
     console.log(params);
     const response = await apiClient.post(`${params.identity}/login`, params);
 
@@ -101,10 +101,10 @@ export const login_method = async (params: LoginParams)=>{
 }
 
 //注册
-export const register_method = async (params: RegisterParams)=>{
-    try{
+export const register_method = async (params: RegisterParams) => {
+  try {
     const response = await apiClient.post(`${params.identity}/register`, params.formData);
-        if (response.data.code == 200){
+    if (response.data.code == 200) {
       ElMessage.success(response.data.message)
       //弹出跳转Box
       ElMessageBox.alert('注册成功，即将跳转至登录页', '提示', {
@@ -115,10 +115,10 @@ export const register_method = async (params: RegisterParams)=>{
         router.push('/login');
       });
     }
-        else{
+    else {
       ElMessage.error(response.data.message)
     }
-    }catch(error){
+  } catch (error) {
     ElMessage.error(`注册失败，${error}`);
     throw error;
   }
@@ -127,11 +127,11 @@ export const register_method = async (params: RegisterParams)=>{
 //验证手机号，邮箱，学号是否已经存在
 
 //获取用户信息
-export const getUserInfo_method = async ()=> {
-    try{
+export const getUserInfo_method = async () => {
+  try {
     const identity = localStorage.getItem('identity')
     const userID = localStorage.getItem('id')
-    
+
     if (!identity || !userID) {
       ElMessage.error('无法获取用户信息，请重新登录');
       throw new Error('Missing identity or user ID');
@@ -142,7 +142,7 @@ export const getUserInfo_method = async ()=> {
 
     if (response.data.code == 200) {
       const userInfo = response.data.data
-      
+
       if (identity === 'student') {
         const store = useStudentInfoStore();
         store.saveStudentInfo(userInfo);
@@ -175,7 +175,7 @@ export const getUserInfo_method = async ()=> {
       const store = useTeacherInfoStore();
       store.clearTeacherInfo();
     }
-    
+
     ElMessage.error(`获取用户信息失败，${error}`);
     throw error;
   }
@@ -188,7 +188,7 @@ export const getStudentInfo_method = getUserInfo_method;
 export const updateUserInfo_method = async (updatedFields: Record<string, any>) => {
   try {
     const identity = localStorage.getItem('identity');
-    
+
     if (!identity) {
       ElMessage.error('无法确定用户身份，请重新登录');
       throw new Error('Missing identity');
@@ -251,12 +251,12 @@ export const updateStudentInfo_method = updateUserInfo_method;
 //fetchAPI 返回事件流
 export const streamChat_method = (params: { message: string, memoryId?: string }) => {
   const token = localStorage.getItem('token');
-  
+
   const formData = new FormData();
   formData.append('message', params.message);
   // 后端要求 memoryId 为 0 或不传表示新对话
-  formData.append('memoryId', params.memoryId || '0'); 
-  
+  formData.append('memoryId', params.memoryId || '0');
+
   return fetch(`${BASE_URL}/ai/common/chat`, {
     method: 'POST',
     headers: {
@@ -298,7 +298,7 @@ export const getHistory_method = async (page = 1, pageSize = 10) => {
     } else if (identity === 'teacher') {
       const store = useTeacherInfoStore();
       userId = store.userInfo?.id;
-      console.log("得到history教师的id",userId);
+      console.log("得到history教师的id", userId);
     } else {
       userId = localStorage.getItem('id');
     }
@@ -319,9 +319,9 @@ export const getHistory_method = async (page = 1, pageSize = 10) => {
       }
     });
 
-    console.log("得到history的response",response);
-    console.log("得到history的response.data",response.data);
-    console.log("得到history的response.data.code",response.data.code);
+    console.log("得到history的response", response);
+    console.log("得到history的response.data", response.data);
+    console.log("得到history的response.data.code", response.data.code);
 
     if (response.data.code === 200) {
       console.log("获取到分页历史数据:", response.data.data);
@@ -333,7 +333,7 @@ export const getHistory_method = async (page = 1, pageSize = 10) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (!errorMessage.includes('获取历史会话失败')) {
-        ElMessage.error(`获取历史会话失败: ${errorMessage}`);
+      ElMessage.error(`获取历史会话失败: ${errorMessage}`);
     }
     throw error;
   }
@@ -352,7 +352,7 @@ export const batchCreateMessages_method = async (params: {
 
     if (response.data.code === 200) {
       console.log("批量创建成功:", response.data.data);
-      
+
     } else {
       ElMessage.error(response.data.message);
       throw new Error(response.data.message);
@@ -367,7 +367,7 @@ export const batchCreateMessages_method = async (params: {
 export const getConversationMessages_method = async (conversationId: number) => {
 
   try {
-    
+
     const response = await apiClient.get(`/ai/message/conversation/${conversationId}/ordered`);
 
     if (response.data.code === 200) {
@@ -419,7 +419,7 @@ export const createCourse_method = async (courseData: CreateCourseParams) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (!errorMessage.includes('创建课程失败')) {
-        ElMessage.error(`创建课程失败: ${errorMessage}`);
+      ElMessage.error(`创建课程失败: ${errorMessage}`);
     }
     throw error;
   }
@@ -429,8 +429,8 @@ export const createCourse_method = async (courseData: CreateCourseParams) => {
  * 1.2 查询教师的课程列表
  * @param params 包含 teacherId 和分页信息
  */
-export const queryCourses_method = async (params: { teacherId: number; page?: number; pageSize?: number }) => {
-   try {
+export const queryCourses_method = async (params: { teacherId: String; page?: number; pageSize?: number }) => {
+  try {
     const response = await apiClient.get(`/course/query`, {
       params: {
         teacherId: params.teacherId,
@@ -447,7 +447,7 @@ export const queryCourses_method = async (params: { teacherId: number; page?: nu
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (!errorMessage.includes('获取课程列表失败')) {
-        ElMessage.error(`获取课程列表失败: ${errorMessage}`);
+      ElMessage.error(`获取课程列表失败: ${errorMessage}`);
     }
     throw error;
   }
