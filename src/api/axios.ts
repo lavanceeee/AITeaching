@@ -430,9 +430,10 @@ export const createCourse_method = async (courseData: CreateCourseParams) => {
  * @param params 包含 teacherId 和分页信息
  */
 export const queryCourses_method = async (params: { teacherId: number; page?: number; pageSize?: number }) => {
-  try {
-    const response = await apiClient.get(`/course/teacher/${params.teacherId}`, {
+   try {
+    const response = await apiClient.get(`/course/query`, {
       params: {
+        teacherId: params.teacherId,
         page: params.page || 1,
         pageSize: params.pageSize || 10,
       }
