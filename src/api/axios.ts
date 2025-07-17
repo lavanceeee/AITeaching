@@ -484,7 +484,7 @@ export const createClass_method = async (classData: CreateClassParams) => {
 // 学生申请加入班级
 export const joinClass_method = async (classCode: string) => {
   try {
-    const response = await apiClient.post('/studentClass/join', { classCode });
+    const response = await apiClient.post('/studentClass/join', classCode);
     if (response.data.code === 200) {
       ElMessage.success('申请已提交，等待审核！');
       return response.data;
@@ -558,7 +558,7 @@ export const queryClasses_method = async (params: QueryClassParams) => {
 export const getClassInfoById = async (classId: string) => {
   try {
     const response = await apiClient.post(`/class/ClassInfoById/${classId}`);
-    if (response.data.code === 200) { 
+    if (response.data.code === 200) {
       return response.data.data;
     } else {
       ElMessage.error(response.data.message || '获取班级详情失败');
