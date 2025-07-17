@@ -11,8 +11,8 @@ import Notification from './components/student/Notification.vue'
 import AIGuide from './components/student/AIGuide.vue'
 import Setting from './components/student/Setting.vue'
 import MainPageTea from '../views/MainPageTea.vue'
-import ClassManguage_tea from './components/teacher/ClassManguage.vue'
-import ProjectManguage_tea from './components/teacher/ProjectManguage.vue'
+import ClassManguage from './components/teacher/ClassManguage.vue'
+import ProjectManguage from './components/teacher/ProjectManguage.vue'
 import ClassView from './components/student/ClassView.vue'
 import ClassDetails from '../components/teacherCom/classdetails.vue'
 
@@ -72,12 +72,12 @@ const routes: RouteRecordRaw[] = [
             },
             {
                 path: 'class',
-                name: 'Teacher_Class',
-                component: ClassManguage_tea
+                name: 'Teacher_Class_List',
+                component: ClassManguage
             },
             {
                 path: 'class/:id',
-                name: 'Teacher_Class',
+                name: 'Teacher_Class_Details',
                 component: ClassDetails,
                 children: [
                     {
@@ -105,7 +105,7 @@ const routes: RouteRecordRaw[] = [
             {
                 path: 'project',
                 name: 'ProjectManguage',
-                component: ProjectManguage_tea
+                component: ProjectManguage
             },
             {
                 path: 'setting',
