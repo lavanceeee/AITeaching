@@ -200,7 +200,7 @@ const joinForm = ref({
 const joinFormRules = {
   classCode: [
     { required: true, message: '请输入班级邀请码', trigger: 'blur' },
-    { pattern: /^\d{6}$/, message: '班级邀请码必须是6位数字', trigger: 'blur' }
+    { pattern: /^\d{19}$/, message: '班级邀请码必须是19位数字', trigger: 'blur' }
   ]
 };
 
