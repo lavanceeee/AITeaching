@@ -99,7 +99,7 @@ let mockCoursesDb = [
     tags: "编程,基础,Java",
     startTime: "2024-09-01",
     endTime: "2024-12-31",
-    teacherId: 1,
+    teacherId: "mock-teacher-id-123",
     teacherName: "张老师",
     credits: 3,
     hours: 48,
@@ -121,7 +121,7 @@ let mockCoursesDb = [
     tags: "核心,算法,数据结构",
     startTime: "2024-09-01",
     endTime: "2024-12-31",
-    teacherId: 1,
+    teacherId: "mock-teacher-id-123",
     teacherName: "张老师",
     credits: 4,
     hours: 64,
@@ -143,7 +143,7 @@ let mockCoursesDb = [
     tags: "前端,Vue,实战",
     startTime: "2024-09-01",
     endTime: "2024-12-31",
-    teacherId: 1,
+    teacherId: "mock-teacher-id-123",
     teacherName: "张老师",
     credits: 3,
     hours: 48,
@@ -165,13 +165,35 @@ let mockCoursesDb = [
     tags: "数据库,SQL,后端",
     startTime: "2023-09-01",
     endTime: "2023-12-31",
-    teacherId: 1,
+    teacherId: "mock-teacher-id-123",
     teacherName: "张老师",
     credits: 3,
     hours: 48,
     capacity: 50,
     enrolledCount: 48,
     createTime: "2023-01-15T12:00:00"
+  }
+];
+
+// ==================== 班级管理模拟 ====================
+
+// 模拟班级数据库
+let mockClassesDb = [
+  {
+    id: 1,
+    name: '软件工程1班',
+    major: '软件工程',
+    grade: '2023',
+    school: '华中科技大学',
+    createTime: '2024-01-01T10:00:00'
+  },
+  {
+    id: 2,
+    name: '人工智能2班',
+    major: '人工智能',
+    grade: '2022',
+    school: '清华大学',
+    createTime: '2024-01-02T10:00:00'
   }
 ];
 
@@ -609,19 +631,22 @@ export const handlers = [
   }),
 
   // Mock for fetching a teacher's courses with pagination
-  // Corresponds to a hypothetical API Spec: GET /course/teacher/{teacherId}
-  http.get(`${API_PREFIX}/course/teacher/:teacherId`, ({ request, params }) => {
-    const { teacherId } = params;
-
-    if (!teacherId || Array.isArray(teacherId)) {
-        return HttpResponse.json({ code: 400, message: '无效的教师ID' }, { status: 400 });
-    }
-
+  // Corresponds to API Spec: GET /course/query
+  http.get(`${API_PREFIX}/course/query`, ({ request }) => {
     const url = new URL(request.url);
+    const teacherId = url.searchParams.get('teacherId');
     const page = parseInt(url.searchParams.get('page') || '1', 10);
     const pageSize = parseInt(url.searchParams.get('pageSize') || '10', 10);
 
     console.log(`MSW: 拦截到获取教师 ${teacherId} 的课程列表请求`, { page, pageSize });
+
+    if (!teacherId) {
+      return HttpResponse.json({ 
+        code: 400, 
+        message: '无效的教师ID',
+        data: null
+      }, { status: 200 }); // 返回HTTP 200但业务码为400
+    }
 
     const teacherCourses = mockCoursesDb.filter(c => c.teacherId.toString() === teacherId);
     
@@ -681,4 +706,34 @@ export const handlers = [
       }
     });
   }),
+
+  // 创建班级接口
+  http.post(`${API_PREFIX}/class/create`, async ({ request }) => {
+    const classData = await request.json() as Record<string, any>;
+    console.log('MSW: 拦截到创建班级请求', classData);
+
+    if (!classData.name || !classData.major || !classData.grade || !classData.school) {
+      return HttpResponse.json({
+        code: 400,
+        message: '班级名称、专业、年级、学校为必填项',
+        data: null
+      }, { status: 200 });
+    }
+
+    const newClass = {
+      id: Date.now(),
+      name: classData.name,
+      major: classData.major,
+      grade: classData.grade,
+      school: classData.school,
+      createTime: new Date().toISOString()
+    };
+    mockClassesDb.unshift(newClass);
+
+    return HttpResponse.json({
+      code: 200,
+      message: '班级创建成功 (MSW)',
+      data: newClass
+    });
+  })
 ] 

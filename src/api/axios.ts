@@ -431,7 +431,7 @@ export const createCourse_method = async (courseData: CreateCourseParams) => {
  */
 export const queryCourses_method = async (params: { teacherId: String; page?: number; pageSize?: number }) => {
   try {
-    const response = await apiClient.get(`/course/query`, {
+    const response = await apiClient.post(`/course/query`, {
       params: {
         teacherId: params.teacherId,
         page: params.page || 1,
@@ -448,6 +448,35 @@ export const queryCourses_method = async (params: { teacherId: String; page?: nu
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (!errorMessage.includes('获取课程列表失败')) {
       ElMessage.error(`获取课程列表失败: ${errorMessage}`);
+    }
+    throw error;
+  }
+};
+
+// ==================== 班级管理接口 ====================
+
+// 定义班级创建接口的参数类型
+interface CreateClassParams {
+  name: string;
+  major: string;
+  grade: string;
+  school: string;
+}
+
+export const createClass_method = async (classData: CreateClassParams) => {
+  try {
+    const response = await apiClient.post('/class/create', classData);
+    if (response.data.code === 200) {
+      ElMessage.success('班级创建成功！');
+      return response.data;
+    } else {
+      ElMessage.error(response.data.message || '创建班级失败');
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!errorMessage.includes('创建班级失败')) {
+      ElMessage.error(`创建班级失败: ${errorMessage}`);
     }
     throw error;
   }
