@@ -135,8 +135,7 @@ const notifications = ref([
 <style scoped>
 .notification-view {
     padding: 1.5rem 2.5rem;
-    height: 100%;
-    overflow-y: auto;
+    /* 移除height和overflow-y设置，使用父容器的滚动 */
 }
 
 .notification-header {

@@ -1,13 +1,7 @@
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
-}
+/* 移除重复的全局样式，这些已经在App.vue中设置 */
 
 

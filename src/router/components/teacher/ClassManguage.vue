@@ -48,25 +48,6 @@
                       <span class="meta-label">学校</span>
                       <span class="meta-value">{{ clazz.school }}</span>
                     </div>
-                    <div class="meta-item class-id-item">
-                      <span class="meta-label">班级号</span>
-                      <div class="class-id-wrapper">
-                        <el-tooltip
-                          content="用于学生加入班级"
-                          placement="top"
-                          :show-after="300"
-                        >
-                          <span class="class-id">{{ clazz.id }}</span>
-                        </el-tooltip>
-                        <el-button
-                          class="copy-btn"
-                          :icon="CopyDocument"
-                          size="small"
-                          circle
-                          @click="copyClassId(clazz.id)"
-                        ></el-button>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -131,15 +112,12 @@ import {
 import { createClass_method, queryClasses_method } from '../../../api/axios';
 import { ElMessage } from 'element-plus';
 import { onMounted } from 'vue';
-import { useTeacherInfoStore } from '../../../store/teacherInfoStore'; 
-
+ 
 const classList = ref([]);
 const total = ref(0);
 const pageSize = ref(10);
 const currentPage = ref(1);
 const loading = ref(false);
-const teacherInfoStore = useTeacherInfoStore();
-
 
 // 按专业分组
 const groupedClasses = computed(() => {
@@ -158,10 +136,8 @@ const fetchClasses = async (page = 1) => {
   try {
     const params = {
       pageNum: page,
-      pageSize: pageSize.value,
-      createBy: teacherInfoStore.userInfo.id
+      pageSize: pageSize.value
     };
-    
     const data = await queryClasses_method(params);
     classList.value = data.records;
     total.value = data.total;
@@ -180,23 +156,6 @@ onMounted(() => {
 
 const handlePageChange = (page) => {
   fetchClasses(page);
-};
-
-// 复制班级ID
-const copyClassId = (id) => {
-  navigator.clipboard.writeText(id).then(() => {
-    ElMessage({
-      message: '班级号已复制到剪贴板',
-      type: 'success',
-      duration: 2000
-    });
-  }).catch(() => {
-    ElMessage({
-      message: '复制失败，请手动复制',
-      type: 'error',
-      duration: 2000
-    });
-  });
 };
 
 // 假数据
@@ -457,34 +416,6 @@ const handleSubmitCreate = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-.class-id-item {
-  margin-top: 4px;
-}
-.class-id-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.class-id {
-  font-family: monospace;
-  background: #f5f7fa;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #606266;
-  cursor: pointer;
-  border: 1px dashed #dcdfe6;
-}
-.copy-btn {
-  --el-button-size: 24px;
-  font-size: 12px;
-  color: #909399;
-  padding: 0;
-}
-.copy-btn:hover {
-  color: #409EFF;
-  background: rgba(64, 158, 255, 0.1);
 }
 .meta-label {
   font-size: 13px;

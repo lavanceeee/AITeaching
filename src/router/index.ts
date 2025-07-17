@@ -13,6 +13,7 @@ import Setting from './components/student/Setting.vue'
 import MainPageTea from '../views/MainPageTea.vue'
 import ClassManguage_tea from './components/teacher/ClassManguage.vue'
 import ProjectManguage_tea from './components/teacher/ProjectManguage.vue'
+import ClassView from './components/student/ClassView.vue'
 
 const routes: RouteRecordRaw[] = [
     {path: '/', redirect: '/login'},
@@ -28,6 +29,11 @@ const routes: RouteRecordRaw[] = [
                 path: 'dashboard',
                 name: 'Dashboard',
                 component: AIGuide
+            },
+            {
+                path: 'class',
+                name: 'Class',
+                component: ClassView
             },
             {
                 path: 'course',

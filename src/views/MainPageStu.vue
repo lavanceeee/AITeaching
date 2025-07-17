@@ -36,13 +36,25 @@
                             <span class="menu-text" v-show="!isCollapsed">首页</span>
                         </div>
                     </router-link>
+
+                    <router-link to="/student/class" custom v-slot="{ navigate, isActive }">
+                        <div class="menu-item" :class="{ active: isActive }" @click="navigate">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                                    <path fill="none" d="M0 0h24v24H0z"/>
+                                    <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <span class="menu-text" v-show="!isCollapsed">班级</span>
+                        </div>
+                    </router-link>
                     
                     <router-link to="/student/course" custom v-slot="{ navigate, isActive }">
                         <div class="menu-item" :class="{ active: isActive }" @click="navigate">
                             <div class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
                                     <path fill="none" d="M0 0h24v24H0z"/>
-                                    <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z" fill="currentColor"/>
+                                    <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z" fill="currentColor"/>
                                 </svg>
                             </div>
                             <span class="menu-text" v-show="!isCollapsed">课程</span>
@@ -333,7 +345,6 @@ const toggleSidebar = () => {
     flex: 1;
     overflow-y: auto;
     padding: 0;
-
 }
 
 

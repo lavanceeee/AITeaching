@@ -481,6 +481,26 @@ export const createClass_method = async (classData: CreateClassParams) => {
   }
 };
 
+// 学生申请加入班级
+export const joinClass_method = async (classCode: string) => {
+  try {
+    const response = await apiClient.post('/studentClass/join', { classCode });
+    if (response.data.code === 200) {
+      ElMessage.success('申请已提交，等待审核！');
+      return response.data;
+    } else {
+      ElMessage.error(response.data.message || '申请加入班级失败');
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!errorMessage.includes('申请加入班级失败')) {
+      ElMessage.error(`申请加入班级失败: ${errorMessage}`);
+    }
+    throw error;
+  }
+};
+
 // 班级分页查询参数类型
 export interface QueryClassParams {
   name?: string;
@@ -533,3 +553,4 @@ export const queryClasses_method = async (params: QueryClassParams) => {
     throw error;
   }
 };
+
