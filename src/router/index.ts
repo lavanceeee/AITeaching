@@ -34,27 +34,27 @@ const routes: RouteRecordRaw[] = [
         children: [
             {
                 path: 'dashboard',
-                name: 'Dashboard',
+                name: 'Student_Dashboard',
                 component: AIGuide
             },
             {
                 path: 'class',
-                name: 'Class',
+                name: 'Student_Class',
                 component: ClassView
             },
             {
                 path: 'course',
-                name: 'Course',
+                name: 'Student_Course',
                 component: Course
             },
             {
                 path: 'notification',
-                name: 'Notification',
+                name: 'Student_Notification',
                 component: Notification
             },
             {
                 path: 'setting',
-                name: 'StudentSetting',
+                name: 'Student_Setting',
                 component: Setting
             }
         ] 
@@ -67,37 +67,37 @@ const routes: RouteRecordRaw[] = [
         children: [
             {
                 path: 'dashboard',
-                name: 'AIGuide',
+                name: 'Teacher_Dashboard',
                 component: AIGuide
             },
             {
                 path: 'class',
-                name: 'ClassManguage',
+                name: 'Teacher_Class',
                 component: ClassManguage_tea
             },
             {
                 path: 'class/:id',
-                name: 'Class',
+                name: 'Teacher_Class',
                 component: ClassDetails,
                 children: [
                     {
                         path: 'classInfo',
-                        name: 'ClassInfo',
+                        name: 'Teacher_ClassInfo',
                         component: ClassInfo
                     },
                     {
                         path: 'students',
-                        name: 'Students',
+                        name: 'Teacher_Students',
                         component: Students
                     },
                     {
                         path: 'homework',
-                        name: 'Homework',
+                        name: 'Teacher_Homework',
                         component: Homework
                     },
                     {
                         path: 'information',
-                        name: 'Information',
+                        name: 'Teacher_Information',
                         component: Information
                     }
                 ]
