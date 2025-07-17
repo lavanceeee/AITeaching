@@ -180,20 +180,104 @@ let mockCoursesDb = [
 // 模拟班级数据库
 let mockClassesDb = [
   {
-    id: 1,
+    id: '1',
     name: '软件工程1班',
     major: '软件工程',
     grade: '2023',
     school: '华中科技大学',
+    status: 1,
+    studentCount: 30,
     createTime: '2024-01-01T10:00:00'
   },
   {
-    id: 2,
+    id: '2',
     name: '人工智能2班',
     major: '人工智能',
     grade: '2022',
     school: '清华大学',
+    status: 1,
+    studentCount: 28,
     createTime: '2024-01-02T10:00:00'
+  },
+  {
+    id: '3',
+    name: '计算机科学3班',
+    major: '计算机科学与技术',
+    grade: '2021',
+    school: '北京大学',
+    status: 0,
+    studentCount: 35,
+    createTime: '2024-01-03T10:00:00'
+  },
+  {
+    id: '4',
+    name: '大数据4班',
+    major: '大数据技术',
+    grade: '2023',
+    school: '浙江大学',
+    status: 1,
+    studentCount: 32,
+    createTime: '2024-01-04T10:00:00'
+  },
+  {
+    id: '5',
+    name: '网络安全5班',
+    major: '网络安全',
+    grade: '2022',
+    school: '上海交通大学',
+    status: 1,
+    studentCount: 27,
+    createTime: '2024-01-05T10:00:00'
+  },
+  {
+    id: '6',
+    name: '物联网6班',
+    major: '物联网工程',
+    grade: '2021',
+    school: '南京大学',
+    status: 0,
+    studentCount: 29,
+    createTime: '2024-01-06T10:00:00'
+  },
+  {
+    id: '7',
+    name: '人工智能7班',
+    major: '人工智能',
+    grade: '2023',
+    school: '复旦大学',
+    status: 1,
+    studentCount: 31,
+    createTime: '2024-01-07T10:00:00'
+  },
+  {
+    id: '8',
+    name: '软件工程8班',
+    major: '软件工程',
+    grade: '2022',
+    school: '同济大学',
+    status: 1,
+    studentCount: 26,
+    createTime: '2024-01-08T10:00:00'
+  },
+  {
+    id: '9',
+    name: '大数据9班',
+    major: '大数据技术',
+    grade: '2021',
+    school: '中国科学技术大学',
+    status: 0,
+    studentCount: 33,
+    createTime: '2024-01-09T10:00:00'
+  },
+  {
+    id: '10',
+    name: '网络安全10班',
+    major: '网络安全',
+    grade: '2023',
+    school: '哈尔滨工业大学',
+    status: 1,
+    studentCount: 25,
+    createTime: '2024-01-10T10:00:00'
   }
 ];
 
@@ -721,11 +805,13 @@ export const handlers = [
     }
 
     const newClass = {
-      id: Date.now(),
+      id: Date.now().toString(),
       name: classData.name,
       major: classData.major,
       grade: classData.grade,
       school: classData.school,
+      status: 1,
+      studentCount: 0,
       createTime: new Date().toISOString()
     };
     mockClassesDb.unshift(newClass);
@@ -735,5 +821,45 @@ export const handlers = [
       message: '班级创建成功 (MSW)',
       data: newClass
     });
-  })
-] 
+  }),
+  // 班级分页查询接口
+  http.post(`${API_PREFIX}/class/query`, async ({ request }) => {
+    let body: any = await request.json();
+    if (typeof body !== 'object' || body === null) body = {};
+    let filtered = mockClassesDb.slice();
+    // 简单条件筛选
+    if (body.name) filtered = filtered.filter(c => c.name && c.name.includes(body.name));
+    if (body.major) filtered = filtered.filter(c => c.major && c.major.includes(body.major));
+    if (body.grade) filtered = filtered.filter(c => c.grade && c.grade.includes(body.grade));
+    if (body.school) filtered = filtered.filter(c => c.school && c.school.includes(body.school));
+    if (typeof body.status === 'number') filtered = filtered.filter(c => c.status === body.status);
+    if (typeof body.studentCount === 'number') filtered = filtered.filter(c => c.studentCount === body.studentCount);
+    // 排序
+    if (body.sortBy) {
+      filtered = filtered.sort((a, b) => {
+        const dir = body.sortDir === 'asc' ? 1 : -1;
+        const key = body.sortBy as keyof typeof a;
+        if (a[key] < b[key]) return -1 * dir;
+        if (a[key] > b[key]) return 1 * dir;
+        return 0;
+      });
+    }
+    // 分页
+    const pageNum = body.pageNum || 1;
+    const pageSize = body.pageSize || 10;
+    const start = (pageNum - 1) * pageSize;
+    const end = start + pageSize;
+    const records = filtered.slice(start, end);
+    return HttpResponse.json({
+      code: 200,
+      message: '查询成功',
+      data: {
+        records,
+        total: filtered.length,
+        size: pageSize,
+        current: pageNum,
+        pages: Math.ceil(filtered.length / pageSize)
+      }
+    });
+  }),
+]; 

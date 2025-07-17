@@ -461,6 +461,7 @@ interface CreateClassParams {
   school: string;
 }
 
+//班级注册
 export const createClass_method = async (classData: CreateClassParams) => {
   try {
     const response = await apiClient.post('/class/create', classData);
@@ -475,6 +476,59 @@ export const createClass_method = async (classData: CreateClassParams) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (!errorMessage.includes('创建班级失败')) {
       ElMessage.error(`创建班级失败: ${errorMessage}`);
+    }
+    throw error;
+  }
+};
+
+// 班级分页查询参数类型
+export interface QueryClassParams {
+  name?: string;
+  major?: string;
+  grade?: string;
+  school?: string;
+  status?: number;
+  studentCount?: number;
+  createBy?: number;
+  sortBy?: string;
+  sortDir?: string;
+  pageNum?: number;
+  pageSize?: number;
+}
+
+// 班级分页查询返回类型
+export interface ClassRecord {
+  id: string;
+  name: string;
+  major: string;
+  grade: string;
+  school: string;
+  status: number;
+  studentCount: number;
+}
+
+export interface QueryClassResult {
+  records: ClassRecord[];
+  total: number;
+  size: number;
+  current: number;
+  pages: number;
+}
+
+// 分页查询班级列表
+export const queryClasses_method = async (params: QueryClassParams) => {
+  try {
+    const response = await apiClient.post('/class/query', params);
+    if (response.data.code === 200) {
+      return response.data.data as QueryClassResult;
+    } else {
+      ElMessage.error(response.data.message || '获取班级列表失败');
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!errorMessage.includes('获取班级列表失败')) {
+      ElMessage.error(`获取班级列表失败: ${errorMessage}`);
     }
     throw error;
   }
