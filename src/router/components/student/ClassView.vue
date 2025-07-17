@@ -158,7 +158,7 @@
     <el-dialog v-model="joinClassDialogVisible" title="加入班级" width="400px">
       <el-form :model="joinForm" :rules="joinFormRules" ref="joinFormRef" label-width="80px">
         <el-form-item label="班级码" prop="classCode">
-          <el-input v-model="joinForm.classCode" placeholder="请输入6位班级邀请码" maxlength="6" />
+          <el-input v-model="joinForm.classCode" placeholder="请输入19位班级邀请码" maxlength="6" />
         </el-form-item>
       </el-form>
       <template #footer>
