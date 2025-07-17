@@ -96,16 +96,20 @@ onMounted(() => {
 
 const fetchCourses = async () => {
   const teacherStore = useTeacherInfoStore();
-  // 模拟登录时，可以手动设置测试信息
-  if (!teacherStore.userInfo.id) {
-    teacherStore.setTestInfo();
-  }
-  const teacherId = teacherStore.userInfo.id;
+  // // 模拟登录时，可以手动设置测试信息
+  // if (!teacherStore.userInfo.id) {
+  //   teacherStore.setTestInfo();
+  // }
+  let teacherId = teacherStore.userInfo.id;
   if (!teacherId) {
-    ElMessage.warning('无法获取教师ID，请确保已登录');
-    return;
+    teacherId = localStorage.getItem('id');
+    if (!teacherId) {
+      ElMessage.warning('无法获取教师ID，请确保已登录');
+      return;
+    }
   }
   try {
+    console.log("在发消息前拿到了teacherId" + teacherId);
     const response = await queryCourses_method({ teacherId, pageSize: 20 });
     // 后端返回的数据在 response.data.records 中
     if (response.data && response.data.records) {
