@@ -667,7 +667,7 @@ export const handlers = [
   // ==================== 课程管理模拟 ====================
 
   // Mock for creating a new course
-  // Corresponds to API Spec 1.1: POST /course/create
+  // Corresponds to API Spec: POST /course/create
   http.post(`${API_PREFIX}/course/create`, async ({ request }) => {
     const courseData = await request.json() as Record<string, any>;
     
@@ -715,24 +715,22 @@ export const handlers = [
   }),
 
   // Mock for fetching a teacher's courses with pagination
-  // Corresponds to API Spec: GET /course/query
-  http.get(`${API_PREFIX}/course/query`, ({ request }) => {
-    const url = new URL(request.url);
-    const teacherId = url.searchParams.get('teacherId');
-    const page = parseInt(url.searchParams.get('page') || '1', 10);
-    const pageSize = parseInt(url.searchParams.get('pageSize') || '10', 10);
+  // API Spec: POST /course/query
+  http.post(`${API_PREFIX}/course/query`, async ({ request }) => {
+    const body:any = await request.json();
+    const { teacherId, page = 1, pageSize = 10 } = body;
 
-    console.log(`MSW: 拦截到获取教师 ${teacherId} 的课程列表请求`, { page, pageSize });
+    console.log(`MSW: 拦截到获取教师 ${teacherId} 的课程列表请求 (POST)`, { page, pageSize });
 
     if (!teacherId) {
       return HttpResponse.json({ 
         code: 400, 
         message: '无效的教师ID',
         data: null
-      }, { status: 200 }); // 返回HTTP 200但业务码为400
+      }, { status: 200 });
     }
 
-    const teacherCourses = mockCoursesDb.filter(c => c.teacherId.toString() === teacherId);
+    const teacherCourses = mockCoursesDb.filter(c => c.teacherId.toString() === teacherId.toString());
     
     const start = (page - 1) * pageSize;
     const end = start + pageSize;

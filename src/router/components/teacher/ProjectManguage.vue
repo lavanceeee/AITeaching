@@ -150,7 +150,6 @@ const handleCourseCreated = () => {
   padding: 24px 32px;
   background-color: #f7f8fa;
   height: 100%;
-  overflow-y: auto;
   position: relative;
 }
 
@@ -194,6 +193,7 @@ const handleCourseCreated = () => {
 
 .course-card:hover {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
 }
 
 .card-cover {

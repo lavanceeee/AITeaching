@@ -36,7 +36,7 @@
                     <el-icon class="class-icon"><UserFilled /></el-icon>
                     <span class="class-name">{{ clazz.name }}</span>
                   </div>
-                  <el-button circle :icon="MoreFilled" class="more-options-btn"></el-button>
+                  <el-button circle :icon="MoreFilled" class="more-options-btn" @click.stop></el-button>
                 </div>
                 <div class="class-card-content">
                   <div class="class-meta">
@@ -57,11 +57,13 @@
                         </el-tooltip>
                       </div>
                       <div class="code-container">
-                        <span class="code-value">{{ clazz.id }}</span>
+                        <el-tooltip :content="clazz.id" placement="top" :show-after="300" :hide-after="0">
+                          <span class="code-value" style="cursor: help;">{{ truncateCode(clazz.id) }}</span>
+                        </el-tooltip>
                         <el-button 
                           size="small" 
                           type="primary" 
-                          @click="copyClassCode(clazz.id)"
+                          @click.stop="copyClassCode(clazz.id)"
                           class="copy-btn"
                           :icon="DocumentCopy"
                         >
@@ -205,6 +207,14 @@ const copyClassCode = (code) => {
         duration: 2000
       });
     });
+};
+
+const truncateCode = (code, length = 6) => {
+  const codeStr = String(code);
+  if (codeStr.length > length) {
+    return codeStr.substring(0, length) + '...';
+  }
+  return codeStr;
 };
 
 // 跳转到班级详情页
@@ -426,10 +436,10 @@ const handleSubmitCreate = async () => {
   border-radius: 6px;
   border: 1px solid #ebeef5;
   transition: all 0.25s;
+  cursor: pointer;
 }
 .class-card:hover {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
-  transform: translateY(-2px);
 }
 .class-card-header {
   display: flex;
