@@ -131,12 +131,15 @@ import {
 import { createClass_method, queryClasses_method } from '../../../api/axios';
 import { ElMessage } from 'element-plus';
 import { onMounted } from 'vue';
- 
+import { useTeacherInfoStore } from '../../../store/teacherInfoStore'; 
+
 const classList = ref([]);
 const total = ref(0);
 const pageSize = ref(10);
 const currentPage = ref(1);
 const loading = ref(false);
+const teacherInfoStore = useTeacherInfoStore();
+
 
 // 按专业分组
 const groupedClasses = computed(() => {
@@ -155,8 +158,10 @@ const fetchClasses = async (page = 1) => {
   try {
     const params = {
       pageNum: page,
-      pageSize: pageSize.value
+      pageSize: pageSize.value,
+      createBy: teacherInfoStore.userInfo.id
     };
+    
     const data = await queryClasses_method(params);
     classList.value = data.records;
     total.value = data.total;
