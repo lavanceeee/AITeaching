@@ -431,12 +431,10 @@ export const createCourse_method = async (courseData: CreateCourseParams) => {
  */
 export const queryCourses_method = async (params: { teacherId: String; page?: number; pageSize?: number }) => {
   try {
-    const response = await apiClient.get(`/course/query`, {
-      params: {
-        teacherId: params.teacherId,
-        page: params.page || 1,
-        pageSize: params.pageSize || 10,
-      }
+    const response = await apiClient.post(`/course/query`, {
+      teacherId: params.teacherId,
+      page: params.page || 1,
+      pageSize: params.pageSize || 10,
     });
     if (response.data.code === 200) {
       return response.data;
