@@ -13,7 +13,7 @@
     <!-- 2. 课程卡片列表 -->
     <div class="course-grid">
       <!-- 这是一个示例卡片，后续将通过 v-for 循环生成 -->
-      <div v-for="course in courses" :key="course.id" class="course-card">
+      <div v-for="course in courses" :key="course.id" class="course-card" @click="goToCourseDetail(course.id)">
         <div class="card-cover">
           <img :src="course.cover || 'https://images.unsplash.com/photo-1543286386-71314a4e9203?w=500&q=80'" alt="Course Cover"/>
           <div class="card-overlay">
@@ -78,6 +78,7 @@ import {
 import { queryCourses_method } from '../../../api/axios';
 import { useTeacherInfoStore } from '../../../store/teacherInfoStore';
 import { ElMessage } from 'element-plus';
+import { useRouter } from 'vue-router';
 
 // 异步加载弹窗组件，优化初始加载性能
 const CreateCourseDialog = defineAsyncComponent(() => 
@@ -85,6 +86,7 @@ const CreateCourseDialog = defineAsyncComponent(() =>
 );
 
 const isCreateCourseDialogVisible = ref(false);
+const router = useRouter();
 
 // 课程数据将从API获取
 const courses = ref([]);
@@ -143,6 +145,9 @@ const handleCourseCreated = () => {
   fetchCourses();
 };
 
+const goToCourseDetail = (courseId) => {
+  router.push(`/teacher/project/${courseId}`);
+};
 </script>
 
 <style scoped>

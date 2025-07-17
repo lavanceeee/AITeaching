@@ -21,6 +21,7 @@ import ClassInfo from '../components/teacherCom/classPage/classInfo.vue'
 import Students from '../components/teacherCom/classPage/students.vue'
 import Homework from '../components/teacherCom/classPage/homework.vue'
 import Information from '../components/teacherCom/classPage/information.vue'
+import CourseDetails from '../components/teacherCom/courseDetails.vue'
 
 const routes: RouteRecordRaw[] = [
     {path: '/', redirect: '/login'},
@@ -106,6 +107,11 @@ const routes: RouteRecordRaw[] = [
                 path: 'project',
                 name: 'ProjectManguage',
                 component: ProjectManguage
+            },
+            {
+                path: 'project/:id',
+                name: 'Teacher_Course_Details',
+                component: CourseDetails
             },
             {
                 path: 'setting',

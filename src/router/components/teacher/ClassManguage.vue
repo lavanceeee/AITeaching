@@ -58,7 +58,9 @@
                       </div>
                       <div class="code-container">
                         <el-tooltip :content="clazz.id" placement="top" :show-after="300" :hide-after="0">
-                          <span class="code-value" style="cursor: help;">{{ truncateCode(clazz.id) }}</span>
+                          <div class="code-value-wrapper">
+                            <span class="code-value">{{ truncateCode(clazz.id) }}</span>
+                          </div>
                         </el-tooltip>
                         <el-button 
                           size="small" 
@@ -578,11 +580,19 @@ const handleSubmitCreate = async () => {
 .code-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px; /* 用 gap 代替 justify-content */
   background-color: white;
   border-radius: 6px;
   padding: 6px 10px;
   border: 1px solid #ebeef5;
+}
+
+.code-value-wrapper {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
 }
 
 .code-value {
@@ -594,7 +604,8 @@ const handleSubmitCreate = async () => {
 }
 
 .copy-btn {
-  margin-left: 10px;
+  flex-shrink: 0; /* 防止按钮被压缩 */
+  margin-left: auto; /* 将按钮推到最右侧 */
 }
 @media (max-width: 600px) {
   .main-content {

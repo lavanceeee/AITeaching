@@ -749,6 +749,29 @@ export const handlers = [
     });
   }),
 
+  // Mock for fetching single course details
+  // Corresponds to API Spec 1.2: GET /course/{id}
+  http.get(`${API_PREFIX}/course/:id`, ({ params }) => {
+    const { id } = params;
+    console.log(`MSW: 拦截到获取课程详情请求, 课程ID: ${id}`);
+    
+    const course = mockCoursesDb.find(c => c.id.toString() === id);
+
+    if (course) {
+      return HttpResponse.json({
+        code: 200,
+        message: "获取课程详情成功 (MSW)",
+        data: course
+      });
+    } else {
+      return HttpResponse.json({
+        code: 404,
+        message: `课程ID ${id} 未找到 (MSW)`,
+        data: null
+      }, { status: 200 }); // 返回业务失败码
+    }
+  }),
+
   // Mock for file upload
   http.post(`${API_PREFIX}/files/upload`, async ({ request }) => {
     const formData = await request.formData();

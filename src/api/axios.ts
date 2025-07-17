@@ -451,6 +451,20 @@ export const queryCourses_method = async (params: { teacherId: String; page?: nu
   }
 };
 
+export const getCourseDetails_method = async (courseId: number | string) => {
+  try {
+    const response = await apiClient.get(`/course/${courseId}`);
+    // 直接返回整个响应，让调用方处理 code 和 data
+    return response.data;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!errorMessage.includes('获取课程详情失败')) {
+      ElMessage.error(`获取课程详情失败: ${errorMessage}`);
+    }
+    throw error;
+  }
+};
+
 // ==================== 班级管理接口 ====================
 
 // 定义班级创建接口的参数类型
