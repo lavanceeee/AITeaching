@@ -30,7 +30,7 @@
               <div class="major-count">{{ classes.length }}个班级</div>
             </div>
             <div class="classes-container">
-              <div v-for="clazz in classes" :key="clazz.id" class="class-card">
+              <div v-for="clazz in classes" :key="clazz.id" class="class-card" @click="goToClassDetail(clazz.id)">
                 <div class="class-card-header">
                   <div class="class-title">
                     <el-icon class="class-icon"><UserFilled /></el-icon>
@@ -136,7 +136,10 @@ import { createClass_method, queryClasses_method } from '../../../api/axios';
 import { ElMessage } from 'element-plus';
 import { onMounted } from 'vue';
 import { useTeacherInfoStore } from '../../../store/teacherInfoStore';
+import { useRouter } from 'vue-router';
+
 const teacherInfoStore = useTeacherInfoStore();
+const router = useRouter();
 
 const classList = ref([]);
 const total = ref(0);
@@ -202,6 +205,11 @@ const copyClassCode = (code) => {
         duration: 2000
       });
     });
+};
+
+// 跳转到班级详情页
+const goToClassDetail = (classId) => {
+  router.push(`/teacher/class/${classId}`);
 };
 
 // 假数据

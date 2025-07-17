@@ -862,4 +862,48 @@ export const handlers = [
       }
     });
   }),
+
+  // 班级详情接口
+  http.post(`${API_PREFIX}/class/ClassInfoById/:id`, ({ params }) => {
+    const { id } = params;
+    
+    console.log(`MSW: 拦截到获取班级详情请求，班级ID: ${id}`);
+    
+    // 查找班级基本信息
+    const classInfo = mockClassesDb.find(c => c.id === id);
+    
+    if (!classInfo) {
+      return HttpResponse.json({
+        code: 404,
+        message: '班级不存在',
+        data: null
+      }, { status: 200 }); // 保持HTTP 200但返回业务错误
+    }
+    
+    // 模拟班级的学生数据
+    const students = Array.from({ length: classInfo.studentCount }, (_, i) => {
+      const idNum = 10000 + i;
+      return {
+        id: idNum,
+        realname: `学生${i+1}`,
+        studentNumber: `${classInfo.grade}${idNum.toString().substring(1)}`,
+        avatar: '' // 空字符串表示使用默认头像
+      };
+    });
+    
+    // 返回完整的班级信息
+    return HttpResponse.json({
+      code: 200,
+      message: '获取班级详情成功',
+      data: {
+        baseInfo: {
+          ...classInfo,
+          createBy: '1944305208522986700', // 创建者ID，可以根据需要修改
+          updateTime: classInfo.createTime // 使用创建时间作为更新时间
+        },
+        students: students
+      },
+      timestamp: Date.now()
+    });
+  }),
 ]; 

@@ -554,3 +554,22 @@ export const queryClasses_method = async (params: QueryClassParams) => {
   }
 };
 
+// 获取班级详情
+export const getClassInfoById = async (classId: string) => {
+  try {
+    const response = await apiClient.post(`/class/ClassInfoById/${classId}`);
+    if (response.data.code === 200) { 
+      return response.data.data;
+    } else {
+      ElMessage.error(response.data.message || '获取班级详情失败');
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!errorMessage.includes('获取班级详情失败')) {
+      ElMessage.error(`获取班级详情失败: ${errorMessage}`);
+    }
+    throw error;
+  }
+};
+

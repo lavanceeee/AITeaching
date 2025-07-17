@@ -14,6 +14,13 @@ import MainPageTea from '../views/MainPageTea.vue'
 import ClassManguage_tea from './components/teacher/ClassManguage.vue'
 import ProjectManguage_tea from './components/teacher/ProjectManguage.vue'
 import ClassView from './components/student/ClassView.vue'
+import ClassDetails from '../components/teacherCom/classdetails.vue'
+
+// 班级详情页子路由组件
+import ClassInfo from '../components/teacherCom/classPage/classInfo.vue'
+import Students from '../components/teacherCom/classPage/students.vue'
+import Homework from '../components/teacherCom/classPage/homework.vue'
+import Information from '../components/teacherCom/classPage/information.vue'
 
 const routes: RouteRecordRaw[] = [
     {path: '/', redirect: '/login'},
@@ -67,6 +74,33 @@ const routes: RouteRecordRaw[] = [
                 path: 'class',
                 name: 'ClassManguage',
                 component: ClassManguage_tea
+            },
+            {
+                path: 'class/:id',
+                name: 'Class',
+                component: ClassDetails,
+                children: [
+                    {
+                        path: 'classInfo',
+                        name: 'ClassInfo',
+                        component: ClassInfo
+                    },
+                    {
+                        path: 'students',
+                        name: 'Students',
+                        component: Students
+                    },
+                    {
+                        path: 'homework',
+                        name: 'Homework',
+                        component: Homework
+                    },
+                    {
+                        path: 'information',
+                        name: 'Information',
+                        component: Information
+                    }
+                ]
             },
             {
                 path: 'project',
