@@ -220,7 +220,7 @@ const handleConfirmAddClasses = async (selectedClassIds) => {
   const courseId = route.params.id;
   try {
     await addClass2Course_method({
-      courseId: Number(courseId),
+      courseId: courseId,
       classId: selectedClassIds,
     });
     // 添加成功后刷新班级列表

@@ -632,13 +632,13 @@ export const queryClassesByStudentId_method = async (studentId: string | number)
 
 export interface Class2CourseParams {
   classId: Array<string>;
-  courseId: number;
+  courseId: string;
 };
 
 export const addClass2Course_method = async (param: Class2CourseParams) => {
   try {
     const response = await apiClient.post('/classCourse/create', param);
-    
+
     const count = param.classId.length;
     console.log("将要添加" + count + "个班级到该课程");
 
@@ -648,7 +648,7 @@ export const addClass2Course_method = async (param: Class2CourseParams) => {
       ElMessage.error(`添加班级到该课程失败：${response.data.message}`);
       throw new Error(response.data.message);
     }
-  }catch(error) {
+  } catch (error) {
     ElMessage.error(`添加班级到课程出错，${error}`)
     throw error;
   }
@@ -658,7 +658,7 @@ export const queryClassesByCourseId_method = async (courseId: number | string) =
   try {
     // Per API doc, this is a POST request
     const response = await apiClient.post(`/classCourse/queryClassByCourseId/${courseId}`);
-    if (response.data.code === 0) { 
+    if (response.data.code === 200) {
       return response.data.data;
     } else {
       ElMessage.error(response.data.message || '获取课程关联班级失败');
