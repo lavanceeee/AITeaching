@@ -465,6 +465,26 @@ export const getCourseDetails_method = async (courseId: number | string) => {
   }
 };
 
+//课程信息更新接口
+export const updateCourse_method = async (updateData: { id: number | string; [key: string]: any }) => {
+  try {
+    const response = await apiClient.put('/course/update', updateData);
+    if (response.data.code === 200) {
+      ElMessage.success('课程信息更新成功！');
+      return response.data;
+    } else {
+      ElMessage.error(response.data.message || '更新课程信息失败');
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!errorMessage.includes('更新课程信息失败')) {
+      ElMessage.error(`更新课程信息失败: ${errorMessage}`);
+    }
+    throw error;
+  }
+};
+
 // ==================== 班级管理接口 ====================
 
 // 定义班级创建接口的参数类型

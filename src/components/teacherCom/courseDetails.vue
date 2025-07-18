@@ -73,7 +73,7 @@
           <div class="panel-card sticky-card">
             <div class="panel-header">
               <h3>核心信息</h3>
-              <el-button type="primary" link :icon="Edit">编辑</el-button>
+              <el-button type="primary" link :icon="Edit" @click="isEditCourseDialogVisible = true">编辑</el-button>
             </div>
             <div class="panel-body">
               <div class="info-list">
@@ -105,6 +105,12 @@
       v-model="isSelectClassDialogVisible"
       @confirm="handleConfirmAddClasses"
     />
+    <edit-course
+      v-if="course"
+      v-model="isEditCourseDialogVisible"
+      :course-data="course"
+      @update-success="handleUpdateSuccess"
+    />
   </div>
 </template>
 
@@ -116,12 +122,14 @@ import { ElMessage } from 'element-plus';
 import { Loading, User, School, Edit, Plus } from '@element-plus/icons-vue';
 
 const SelectClass = defineAsyncComponent(() => import('./selectClass.vue'));
+const EditCourse = defineAsyncComponent(() => import('./EditCourse.vue'));
 
 const route = useRoute();
 const course = ref(null);
 const loading = ref(true);
 const activeTab = ref('outline');
 const isSelectClassDialogVisible = ref(false);
+const isEditCourseDialogVisible = ref(false);
 
 const fetchCourseDetails = async () => {
   const courseId = route.params.id;
@@ -159,6 +167,10 @@ const getStatusType = (status) => {
     case 4: return 'danger';
     default: return 'info';
   }
+};
+
+const handleUpdateSuccess = () => {
+  fetchCourseDetails();
 };
 
 const handleConfirmAddClasses = (selectedClassIds) => {
