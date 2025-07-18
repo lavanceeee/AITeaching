@@ -55,7 +55,7 @@
                     :icon="Upload"
                     @click="showUploadOutlineDialog"
                   >
-                    上传大纲
+                    上传材料并使用AI生成
                   </el-button>
                 </div>
                 <div class="panel-body">
@@ -204,7 +204,7 @@
     <!-- 上传课程大纲对话框 -->
     <el-dialog
       v-model="isUploadOutlineDialogVisible"
-      title="上传课程大纲"
+      title="上传课程文件"
       width="500px"
       @closed="resetUploadForm"
     >
