@@ -676,7 +676,11 @@ export const queryClassesByCourseId_method = async (courseId: number | string) =
 //上传接口
 export const uploadFile2AI = async(formData: FormData) => {
   try {
-    const response = await apiClient.post('/upload/courseFile', formData);
+    const response = await apiClient.post('/upload/courseFile', formData,{
+      headers: {
+    'Content-Type': 'multipart/form-data'
+  }
+    });
 
     if (response.data.code === 200) {
       ElMessage.success("文件上传成功，即将开始生成课程大纲！");
