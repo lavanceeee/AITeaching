@@ -5,6 +5,8 @@ import router from '../router';
 import { useStudentInfoStore } from '../store/studentInfoStore';
 import { useTeacherInfoStore } from '../store/teacherInfoStore';
 import { useAIChatStore } from '../store/AIChatStore';
+// import type { List } from 'echarts';
+// import { error } from 'echarts/types/src/util/log.js';
 
 // 创建 axios 实例
 const apiClient = axios.create({
@@ -466,7 +468,7 @@ export const getCourseDetails_method = async (courseId: number | string) => {
 };
 
 //课程信息更新接口
-export const updateCourse_method = async (updateData: { id: number | string; [key: string]: any }) => {
+export const updateCourse_method = async (updateData: { id: number | string;[key: string]: any }) => {
   try {
     const response = await apiClient.put('/course/update', updateData);
     if (response.data.code === 200) {
@@ -621,6 +623,51 @@ export const queryClassesByStudentId_method = async (studentId: string | number)
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (!errorMessage.includes('获取班级列表失败')) {
       ElMessage.error(`获取班级列表失败: ${errorMessage}`);
+    }
+    throw error;
+  }
+};
+
+//课程添加班级逻辑
+
+export interface Class2CourseParams {
+  classId: Array<string>;
+  courseId: number;
+};
+
+export const addClass2Course_method = async (param: Class2CourseParams) => {
+  try {
+    const response = await apiClient.post('/classCourse/create', param);
+    
+    const count = param.classId.length;
+    console.log("将要添加" + count + "个班级到该课程");
+
+    if (response.data.code === 200) {
+      ElMessage.success(`已成功添加${count}个班级到该课程`);
+    } else {
+      ElMessage.error(`添加班级到该课程失败：${response.data.message}`);
+      throw new Error(response.data.message);
+    }
+  }catch(error) {
+    ElMessage.error(`添加班级到课程出错，${error}`)
+    throw error;
+  }
+};
+
+export const queryClassesByCourseId_method = async (courseId: number | string) => {
+  try {
+    // Per API doc, this is a POST request
+    const response = await apiClient.post(`/classCourse/queryClassByCourseId/${courseId}`);
+    if (response.data.code === 0) { 
+      return response.data.data;
+    } else {
+      ElMessage.error(response.data.message || '获取课程关联班级失败');
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!errorMessage.includes('获取课程关联班级失败')) {
+      ElMessage.error(`获取课程关联班级失败: ${errorMessage}`);
     }
     throw error;
   }

@@ -928,6 +928,86 @@ export const handlers = [
     });
   }),
 
+  // 添加班级到课程关联接口
+  http.post(`${API_PREFIX}/classCourse/create`, async ({ request }) => {
+    const body = await request.json() as { classId: Array<string>; courseId: number };
+    const { classId, courseId } = body;
+    
+    console.log(`MSW: 拦截到添加班级到课程请求:`, { 
+      courseId, 
+      classIds: classId, 
+      classCount: classId.length 
+    });
+
+    // 检查课程是否存在
+    const course = mockCoursesDb.find(c => c.id === courseId);
+    if (!course) {
+      return HttpResponse.json({
+        code: 404,
+        message: '课程不存在',
+        data: null
+      }, { status: 200 }); // 返回业务错误码
+    }
+
+    // 检查所有班级是否存在
+    const classesExist = classId.every(id => mockClassesDb.some(c => c.id === id));
+    if (!classesExist) {
+      return HttpResponse.json({
+        code: 404,
+        message: '一个或多个班级不存在',
+        data: null
+      }, { status: 200 });
+    }
+
+    // 模拟成功响应
+    return HttpResponse.json({
+      code: 200,
+      message: `已成功添加${classId.length}个班级到课程${course.name}`,
+      data: {
+        courseId,
+        courseName: course.name,
+        classIds: classId,
+        createdTime: new Date().toISOString()
+      },
+      timestamp: Date.now()
+    });
+  }),
+
+  // 根据课程ID查询关联的班级列表
+  http.post(`${API_PREFIX}/classCourse/queryClassByCourseId/:courseId`, ({ params }) => {
+    const { courseId } = params;
+    console.log(`MSW: 拦截到根据课程ID ${courseId} 查询班级列表请求`);
+
+    // 检查课程是否存在
+    const course = mockCoursesDb.find(c => c.id.toString() === courseId);
+    if (!course) {
+      return HttpResponse.json({
+        code: 404,
+        message: `课程 ID ${courseId} 不存在 (MSW)`,
+        data: null
+      }, { status: 200 });
+    }
+
+    // 模拟该课程已关联的班级列表 (例如，取班级列表的前3个)
+    // 确保返回的数据格式与接口文档一致
+    const associatedClasses = mockClassesDb.slice(0, 3).map(cls => ({
+      id: cls.id,
+      name: cls.name,
+      major: cls.major,
+      grade: `${cls.grade}级`,
+      school: cls.school,
+      status: cls.status,
+      studentCount: cls.studentCount,
+    }));
+
+    return HttpResponse.json({
+      code: 0, // 根据 axios.ts 的修改，成功码为 0
+      message: '查询成功 (MSW)',
+      data: associatedClasses,
+      timestamp: Date.now()
+    });
+  }),
+
   // 根据学生ID查询其加入的班级列表
   http.get(`${API_PREFIX}/studentClass/queryByStudentId/:studentId`, ({ params }) => {
     const { studentId } = params;

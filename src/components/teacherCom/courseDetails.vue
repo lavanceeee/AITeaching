@@ -47,7 +47,7 @@
                 </div>
               </div>
             </el-tab-pane>
-            <el-tab-pane label="学生列表" name="students">
+            <el-tab-pane label="班级列表" name="students">
               <div class="panel-card">
                 <div class="panel-header">
                   <h3>班级与学生</h3>
@@ -56,7 +56,25 @@
                   </el-button>
                 </div>
                 <div class="panel-body">
-                  <el-empty description="暂未关联任何班级，请点击右上角按钮添加。" />
+                  <div v-if="associatedClassesLoading" class="loading-state">
+                    <el-icon class="is-loading" size="24"><Loading /></el-icon>
+                    <span>正在加载班级...</span>
+                  </div>
+                  <div v-else-if="associatedClasses.length > 0" class="associated-class-grid">
+                    <div v-for="cls in associatedClasses" :key="cls.id" class="associated-class-card">
+                      <div class="card-icon">
+                        <el-icon :size="20"><Reading /></el-icon>
+                      </div>
+                      <div class="card-info">
+                        <div class="class-name">{{ cls.name }}</div>
+                        <div class="class-meta">{{ cls.major }} · {{ cls.grade }}</div>
+                      </div>
+                      <div class="class-actions">
+                        <el-button type="primary" link size="small">查看</el-button>
+                      </div>
+                    </div>
+                  </div>
+                  <el-empty v-else description="暂未关联任何班级，请点击右上角按钮添加。" />
                 </div>
               </div>
             </el-tab-pane>
@@ -103,6 +121,7 @@
     </div>
     <select-class 
       v-model="isSelectClassDialogVisible"
+      :associated-class-ids="associatedClassIds"
       @confirm="handleConfirmAddClasses"
     />
     <edit-course
@@ -115,11 +134,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineAsyncComponent } from 'vue';
+import { ref, onMounted, defineAsyncComponent, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { getCourseDetails_method } from '../../api/axios';
+import { getCourseDetails_method, queryClassesByCourseId_method, addClass2Course_method } from '../../api/axios';
 import { ElMessage } from 'element-plus';
-import { Loading, User, School, Edit, Plus } from '@element-plus/icons-vue';
+import { Loading, User, School, Edit, Plus, Reading } from '@element-plus/icons-vue';
 
 const SelectClass = defineAsyncComponent(() => import('./selectClass.vue'));
 const EditCourse = defineAsyncComponent(() => import('./EditCourse.vue'));
@@ -130,6 +149,10 @@ const loading = ref(true);
 const activeTab = ref('outline');
 const isSelectClassDialogVisible = ref(false);
 const isEditCourseDialogVisible = ref(false);
+const associatedClasses = ref([]);
+const associatedClassesLoading = ref(false);
+
+const associatedClassIds = computed(() => associatedClasses.value.map(c => c.id));
 
 const fetchCourseDetails = async () => {
   const courseId = route.params.id;
@@ -143,6 +166,8 @@ const fetchCourseDetails = async () => {
     const response = await getCourseDetails_method(courseId);
     if (response.code === 200 && response.data) {
       course.value = response.data;
+      // 获取到课程详情后，获取关联的班级
+      fetchAssociatedClasses(courseId);
     } else {
       ElMessage.error(response.message || '获取课程详情失败');
     }
@@ -151,6 +176,19 @@ const fetchCourseDetails = async () => {
     // Let the UI show the empty state
   } finally {
     loading.value = false;
+  }
+};
+
+const fetchAssociatedClasses = async (courseId) => {
+  associatedClassesLoading.value = true;
+  try {
+    const data = await queryClassesByCourseId_method(courseId);
+    associatedClasses.value = data || [];
+  } catch (error) {
+    console.error("获取关联班级列表失败：", error);
+    associatedClasses.value = [];
+  } finally {
+    associatedClassesLoading.value = false;
   }
 };
 
@@ -173,13 +211,24 @@ const handleUpdateSuccess = () => {
   fetchCourseDetails();
 };
 
-const handleConfirmAddClasses = (selectedClassIds) => {
-  console.log('要添加到此课程的班级ID:', selectedClassIds);
-  // 在这里可以调用API将班级关联到课程
-  ElMessage.success({
-    message: `操作成功！已将 ${selectedClassIds.length} 个班级关联到本课程。`,
-    duration: 3000
-  });
+const handleConfirmAddClasses = async (selectedClassIds) => {
+  if (!selectedClassIds || selectedClassIds.length === 0) {
+    ElMessage.info("您没有选择任何新的班级。");
+    return;
+  }
+  
+  const courseId = route.params.id;
+  try {
+    await addClass2Course_method({
+      courseId: Number(courseId),
+      classId: selectedClassIds,
+    });
+    // 添加成功后刷新班级列表
+    fetchAssociatedClasses(courseId);
+  } catch (error) {
+    console.error("添加班级到课程失败:", error);
+    // 错误消息已在axios中处理
+  }
 };
 </script>
 
@@ -348,5 +397,56 @@ const handleConfirmAddClasses = (selectedClassIds) => {
 }
 :deep(.el-tabs__nav) {
   padding: 0 20px;
+}
+
+.associated-class-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.associated-class-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: #f7f8fa;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
+}
+
+.card-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e3efff;
+  color: #409EFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.card-info .class-name {
+  font-weight: 500;
+  color: #303133;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-info .class-meta {
+  font-size: 13px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+.class-actions {
+  flex-shrink: 0;
 }
 </style>

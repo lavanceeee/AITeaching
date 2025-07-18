@@ -27,8 +27,16 @@
         </div>
         <el-checkbox-group v-model="selectedClasses" @change="handleCheckedClassesChange(major)">
           <div class="class-grid">
-            <el-checkbox v-for="clazz in classes" :key="clazz.id" :label="clazz.id" border class="class-checkbox">
+            <el-checkbox 
+              v-for="clazz in classes" 
+              :key="clazz.id" 
+              :label="clazz.id" 
+              :disabled="isClassAssociated(clazz.id)"
+              border 
+              class="class-checkbox"
+            >
               {{ clazz.name }}
+              <el-tag v-if="isClassAssociated(clazz.id)" size="small" type="info" style="margin-left: 8px;">已添加</el-tag>
             </el-checkbox>
           </div>
         </el-checkbox-group>
@@ -53,6 +61,10 @@ import { ElMessage } from 'element-plus';
 
 const props = defineProps({
   modelValue: Boolean,
+  associatedClassIds: {
+    type: Array,
+    default: () => []
+  }
 });
 const emit = defineEmits(['update:modelValue', 'confirm']);
 
@@ -74,6 +86,10 @@ const groupedClasses = computed(() => {
   });
   return groups;
 });
+
+const isClassAssociated = (classId) => {
+  return props.associatedClassIds.includes(classId);
+};
 
 const isIndeterminate = (major) => {
     return indeterminateStatus[major] || false;
@@ -107,7 +123,9 @@ const fetchClasses = async () => {
 };
 
 const handleCheckAllChange = (major, val) => {
-  const classIdsInMajor = groupedClasses.value[major].map(c => c.id);
+  const classIdsInMajor = groupedClasses.value[major]
+    .filter(c => !isClassAssociated(c.id)) // 过滤掉已关联的
+    .map(c => c.id);
   if (val) {
     selectedClasses.value = [...new Set([...selectedClasses.value, ...classIdsInMajor])];
   } else {
@@ -118,16 +136,23 @@ const handleCheckAllChange = (major, val) => {
 
 const handleCheckedClassesChange = (major) => {
   if (!groupedClasses.value[major]) return;
-  const classIdsInMajor = groupedClasses.value[major].map(c => c.id);
-  const selectedCountInMajor = classIdsInMajor.filter(id => selectedClasses.value.includes(id)).length;
+  const unassociatedClassIdsInMajor = groupedClasses.value[major]
+    .filter(c => !isClassAssociated(c.id))
+    .map(c => c.id);
   
-  checkAll[major] = selectedCountInMajor === classIdsInMajor.length;
-  indeterminateStatus[major] = selectedCountInMajor > 0 && selectedCountInMajor < classIdsInMajor.length;
+  const selectedCountInMajor = unassociatedClassIdsInMajor.filter(id => selectedClasses.value.includes(id)).length;
+  
+  checkAll[major] = unassociatedClassIdsInMajor.length > 0 && selectedCountInMajor === unassociatedClassIdsInMajor.length;
+  indeterminateStatus[major] = selectedCountInMajor > 0 && selectedCountInMajor < unassociatedClassIdsInMajor.length;
 };
 
 const handleConfirm = () => {
-  emit('confirm', selectedClasses.value);
-  console.log("已选择的班级",selectedClasses.value);
+  const newSelections = selectedClasses.value.filter(id => !isClassAssociated(id));
+  if (newSelections.length === 0) {
+    ElMessage.info('您没有选择任何新的班级。');
+    return;
+  }
+  emit('confirm', newSelections);
   emit('update:modelValue', false);
 };
 
