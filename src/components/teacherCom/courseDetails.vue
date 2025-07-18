@@ -4,24 +4,39 @@
       <el-icon class="is-loading" size="28"><Loading /></el-icon>
       <p>正在加载课程数据...</p>
     </div>
-    <el-empty v-else-if="!course" description="未能加载课程信息，请稍后重试。" />
+    <el-empty
+      v-else-if="!course"
+      description="未能加载课程信息，请稍后重试。"
+    />
     <div v-else class="course-content">
       <!-- 顶部 Header -->
       <div class="course-header">
         <div class="header-image-wrapper">
-          <img :src="course.cover" :alt="course.name" class="header-image"/>
+          <img :src="course.cover" :alt="course.name" class="header-image" />
           <div class="header-overlay"></div>
         </div>
         <div class="header-info">
           <el-breadcrumb separator="/">
-            <el-breadcrumb-item :to="{ path: '/teacher/project' }">课程管理</el-breadcrumb-item>
+            <el-breadcrumb-item :to="{ path: '/teacher/project' }"
+              >课程管理</el-breadcrumb-item
+            >
             <el-breadcrumb-item>课程详情</el-breadcrumb-item>
           </el-breadcrumb>
           <h1 class="course-title">{{ course.name }}</h1>
           <div class="header-meta">
-            <el-tag :type="getStatusType(course.status)" effect="light" size="small">{{ course.statusDesc }}</el-tag>
-            <span class="meta-item"><el-icon><User /></el-icon> {{ course.teacherName }}</span>
-            <span class="meta-item"><el-icon><School /></el-icon> {{ course.school }} - {{ course.major }}</span>
+            <el-tag
+              :type="getStatusType(course.status)"
+              effect="light"
+              size="small"
+              >{{ course.statusDesc }}</el-tag
+            >
+            <span class="meta-item"
+              ><el-icon><User /></el-icon> {{ course.teacherName }}</span
+            >
+            <span class="meta-item"
+              ><el-icon><School /></el-icon> {{ course.school }} -
+              {{ course.major }}</span
+            >
           </div>
         </div>
       </div>
@@ -34,16 +49,24 @@
               <div class="panel-card">
                 <div class="panel-header">
                   <h3>课程大纲</h3>
+                  <!-- 添加上传按钮 -->
+                  <el-button
+                    type="primary"
+                    :icon="Upload"
+                    @click="showUploadOutlineDialog"
+                  >
+                    上传大纲
+                  </el-button>
                 </div>
                 <div class="panel-body">
                   <p class="course-description">{{ course.description }}</p>
                   <!-- Mocked outline -->
-                  <el-timeline style="margin-top: 20px;">
+                  <!-- <el-timeline style="margin-top: 20px;">
                     <el-timeline-item timestamp="第一章: Java入门" placement="top">基础语法与环境搭建</el-timeline-item>
                     <el-timeline-item timestamp="第二章: 面向对象" placement="top">类、对象、继承、多态</el-timeline-item>
                     <el-timeline-item timestamp="第三章: 核心API" placement="top">集合框架、IO流、多线程</el-timeline-item>
                     <el-timeline-item timestamp="第四章: 数据库编程" placement="top">JDBC与数据库连接池</el-timeline-item>
-                  </el-timeline>
+                  </el-timeline> -->
                 </div>
               </div>
             </el-tab-pane>
@@ -51,7 +74,11 @@
               <div class="panel-card">
                 <div class="panel-header">
                   <h3>班级与学生</h3>
-                  <el-button type="primary" :icon="Plus" @click="isSelectClassDialogVisible = true">
+                  <el-button
+                    type="primary"
+                    :icon="Plus"
+                    @click="isSelectClassDialogVisible = true"
+                  >
                     添加班级
                   </el-button>
                 </div>
@@ -60,29 +87,47 @@
                     <el-icon class="is-loading" size="24"><Loading /></el-icon>
                     <span>正在加载班级...</span>
                   </div>
-                  <div v-else-if="associatedClasses.length > 0" class="associated-class-grid">
-                    <div v-for="cls in associatedClasses" :key="cls.id" class="associated-class-card">
+                  <div
+                    v-else-if="associatedClasses.length > 0"
+                    class="associated-class-grid"
+                  >
+                    <div
+                      v-for="cls in associatedClasses"
+                      :key="cls.id"
+                      class="associated-class-card"
+                    >
                       <div class="card-icon">
                         <el-icon :size="20"><Reading /></el-icon>
                       </div>
                       <div class="card-info">
                         <div class="class-name">{{ cls.name }}</div>
-                        <div class="class-meta">{{ cls.major }} · {{ cls.grade }}</div>
+                        <div class="class-meta">
+                          {{ cls.major }} · {{ cls.grade }}
+                        </div>
                       </div>
                       <div class="class-actions">
-                        <el-button type="primary" link size="small">查看</el-button>
+                        <el-button type="primary" link size="small"
+                          >查看</el-button
+                        >
                       </div>
                     </div>
                   </div>
-                  <el-empty v-else description="暂未关联任何班级，请点击右上角按钮添加。" />
+                  <el-empty
+                    v-else
+                    description="暂未关联任何班级，请点击右上角按钮添加。"
+                  />
                 </div>
               </div>
             </el-tab-pane>
             <el-tab-pane label="课程作业" name="homework">
-              <div class="panel-card"><el-empty description="作业功能开发中" /></div>
+              <div class="panel-card">
+                <el-empty description="作业功能开发中" />
+              </div>
             </el-tab-pane>
-             <el-tab-pane label="设置" name="settings">
-              <div class="panel-card"><el-empty description="设置功能开发中" /></div>
+            <el-tab-pane label="设置" name="settings">
+              <div class="panel-card">
+                <el-empty description="设置功能开发中" />
+              </div>
             </el-tab-pane>
           </el-tabs>
         </div>
@@ -91,26 +136,51 @@
           <div class="panel-card sticky-card">
             <div class="panel-header">
               <h3>核心信息</h3>
-              <el-button type="primary" link :icon="Edit" @click="isEditCourseDialogVisible = true">编辑</el-button>
+              <el-button
+                type="primary"
+                link
+                :icon="Edit"
+                @click="isEditCourseDialogVisible = true"
+                >编辑</el-button
+              >
             </div>
             <div class="panel-body">
               <div class="info-list">
-                <div class="info-item-row"><span>课程代码</span><strong>{{ course.courseCode }}</strong></div>
-                <div class="info-item-row"><span>所属年级</span><strong>{{ course.grade }}</strong></div>
-                <div class="info-item-row"><span>课程学分</span><strong>{{ course.credits }} 学分</strong></div>
-                <div class="info-item-row"><span>总学时</span><strong>{{ course.hours }} 小时</strong></div>
-                <div class="info-item-row"><span>课程容量</span><strong>{{ course.enrolledCount }} / {{ course.capacity }}</strong></div>
+                <div class="info-item-row">
+                  <span>课程代码</span><strong>{{ course.courseCode }}</strong>
+                </div>
+                <div class="info-item-row">
+                  <span>所属年级</span><strong>{{ course.grade }}</strong>
+                </div>
+                <div class="info-item-row">
+                  <span>课程学分</span
+                  ><strong>{{ course.credits }} 学分</strong>
+                </div>
+                <div class="info-item-row">
+                  <span>总学时</span><strong>{{ course.hours }} 小时</strong>
+                </div>
+                <div class="info-item-row">
+                  <span>课程容量</span
+                  ><strong
+                    >{{ course.enrolledCount }} / {{ course.capacity }}</strong
+                  >
+                </div>
                 <div class="info-item-row">
                   <span>开课时间</span>
                   <strong>{{ course.startTime }}</strong>
                 </div>
-                 <div class="info-item-row">
+                <div class="info-item-row">
                   <span>结课时间</span>
                   <strong>{{ course.endTime }}</strong>
                 </div>
               </div>
-               <div class="course-tags">
-                <el-tag v-for="tag in course.tags.split(',')" :key="tag" class="tag-item" disable-transitions>
+              <div class="course-tags">
+                <el-tag
+                  v-for="tag in course.tags.split(',')"
+                  :key="tag"
+                  class="tag-item"
+                  disable-transitions
+                >
                   {{ tag }}
                 </el-tag>
               </div>
@@ -119,7 +189,7 @@
         </div>
       </div>
     </div>
-    <select-class 
+    <select-class
       v-model="isSelectClassDialogVisible"
       :associated-class-ids="associatedClassIds"
       @confirm="handleConfirmAddClasses"
@@ -130,34 +200,111 @@
       :course-data="course"
       @update-success="handleUpdateSuccess"
     />
+
+    <!-- 上传课程大纲对话框 -->
+    <el-dialog
+      v-model="isUploadOutlineDialogVisible"
+      title="上传课程大纲"
+      width="500px"
+      @closed="resetUploadForm"
+    >
+      <el-form
+        :model="uploadForm"
+        ref="uploadFormRef"
+        :rules="uploadRules"
+        label-width="100px"
+      >
+        <el-form-item label="课程大纲" prop="file">
+          <el-upload
+            ref="uploadRef"
+            :auto-upload="false"
+            :limit="1"
+            :on-exceed="handleExceed"
+            :on-change="handleFileChange"
+            :before-upload="beforeUpload"
+            :file-list="uploadForm.fileList"
+            accept=".doc,.docx,.pdf,.txt,.md"
+            class="outline-uploader"
+          >
+            <el-button type="primary" :icon="Document">选择文件</el-button>
+            <template #tip>
+              <div class="el-upload__tip">
+                仅支持 Word、PDF、TXT 或 Markdown 文件，大小不超过 120MB
+              </div>
+            </template>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="isUploadOutlineDialogVisible = false"
+            >取 消</el-button
+          >
+          <el-button type="primary" @click="submitUpload" :loading="uploading"
+            >上 传</el-button
+          >
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, defineAsyncComponent, computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { getCourseDetails_method, queryClassesByCourseId_method, addClass2Course_method } from '../../api/axios';
-import { ElMessage } from 'element-plus';
-import { Loading, User, School, Edit, Plus, Reading } from '@element-plus/icons-vue';
+import { ref, onMounted, defineAsyncComponent, computed } from "vue";
+import { useRoute } from "vue-router";
+import {
+  getCourseDetails_method,
+  queryClassesByCourseId_method,
+  addClass2Course_method,
+} from "../../api/axios";
+import { ElMessage } from "element-plus";
+import {
+  Loading,
+  User,
+  School,
+  Edit,
+  Plus,
+  Reading,
+  Upload,
+  Document,
+} from "@element-plus/icons-vue";
+import { uploadFile2AI } from "../../api/axios";
 
-const SelectClass = defineAsyncComponent(() => import('./selectClass.vue'));
-const EditCourse = defineAsyncComponent(() => import('./EditCourse.vue'));
+const SelectClass = defineAsyncComponent(() => import("./selectClass.vue"));
+const EditCourse = defineAsyncComponent(() => import("./EditCourse.vue"));
 
 const route = useRoute();
 const course = ref(null);
 const loading = ref(true);
-const activeTab = ref('outline');
+const activeTab = ref("outline");
 const isSelectClassDialogVisible = ref(false);
 const isEditCourseDialogVisible = ref(false);
+const isUploadOutlineDialogVisible = ref(false);
+const uploading = ref(false);
+const uploadRef = ref(null);
+const uploadFormRef = ref(null);
 const associatedClasses = ref([]);
 const associatedClassesLoading = ref(false);
 
-const associatedClassIds = computed(() => associatedClasses.value.map(c => c.id));
+const associatedClassIds = computed(() =>
+  associatedClasses.value.map((c) => c.id)
+);
+
+// 文件上传表单
+const uploadForm = ref({
+  file: null,
+  fileList: [],
+});
+
+// 上传表单验证规则
+const uploadRules = {
+  file: [{ required: true, message: "请选择要上传的文件", trigger: "change" }],
+};
 
 const fetchCourseDetails = async () => {
   const courseId = route.params.id;
   if (!courseId) {
-    ElMessage.error('无效的课程ID');
+    ElMessage.error("无效的课程ID");
     loading.value = false;
     return;
   }
@@ -169,10 +316,10 @@ const fetchCourseDetails = async () => {
       // 获取到课程详情后，获取关联的班级
       fetchAssociatedClasses(courseId);
     } else {
-      ElMessage.error(response.message || '获取课程详情失败');
+      ElMessage.error(response.message || "获取课程详情失败");
     }
   } catch (error) {
-    console.error('获取课程详情失败:', error);
+    console.error("获取课程详情失败:", error);
     // Let the UI show the empty state
   } finally {
     loading.value = false;
@@ -192,18 +339,116 @@ const fetchAssociatedClasses = async (courseId) => {
   }
 };
 
+// 显示上传对话框
+const showUploadOutlineDialog = () => {
+  isUploadOutlineDialogVisible.value = true;
+};
+
+// 文件数量超过限制时的处理
+const handleExceed = () => {
+  ElMessage.warning("只能上传一个文件，请先删除当前文件再上传新文件");
+};
+
+// 文件改变时的处理
+const handleFileChange = (file) => {
+  uploadForm.value.file = file.raw;
+};
+
+// 文件上传前的验证
+const beforeUpload = (file) => {
+  // 检查文件类型
+  const allowedTypes = [
+    "application/msword", // .doc
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+    "application/pdf", // .pdf
+    "text/plain", // .txt
+    "text/markdown", // .md
+  ];
+  const isValidType =
+    allowedTypes.includes(file.type) ||
+    file.name.endsWith(".doc") ||
+    file.name.endsWith(".docx") ||
+    file.name.endsWith(".pdf") ||
+    file.name.endsWith(".txt") ||
+    file.name.endsWith(".md");
+  if (!isValidType) {
+    ElMessage.error("只能上传Word、PDF、TXT或Markdown文件");
+    return false;
+  }
+
+  const isLt120M = file.size / 1024 / 1024 < 120;
+  if (!isLt120M) {
+    ElMessage.error("文件大小不能超过120MB");
+    return false;
+  }
+
+  return isValidType && isLt120M;
+};
+
+// 重置上传表单
+const resetUploadForm = () => {
+  uploadForm.value = {
+    file: null,
+    fileList: [],
+  };
+
+  if (uploadFormRef.value) {
+    uploadFormRef.value.resetFields();
+  }
+
+  if (uploadRef.value) {
+    uploadRef.value.clearFiles();
+  }
+};
+
+// 文件上传提交上传
+const submitUpload = async () => {
+  if (!uploadFormRef.value) return;
+
+  await uploadFormRef.value.validate(async (valid) => {
+    if (valid) {
+      if (!uploadForm.value.file) {
+        ElMessage.warning("请选择要上传的文件");
+        return;
+      }
+
+      uploading.value = true;
+
+      const formData = new FormData();
+
+      formData.append("file", uploadForm.value.file);
+      formData.append("courseId", route.params.id);
+
+      //上传文件
+      uploadFile2AI(formData);
+
+      isUploadOutlineDialogVisible.value = false;
+
+      uploading.value = false;
+    } else {
+      ElMessage.error("请完成必填项");
+    }
+  });
+};
+
 onMounted(() => {
   fetchCourseDetails();
 });
 
 const getStatusType = (status) => {
   switch (status) {
-    case 0: return 'info';
-    case 1: return 'success';
-    case 2: return 'primary';
-    case 3: return 'warning';
-    case 4: return 'danger';
-    default: return 'info';
+    case 0:
+      return "info";
+    case 1:
+      return "success";
+    case 2:
+      return "primary";
+    case 3:
+      return "warning";
+    case 4:
+      return "danger";
+    default:
+      return "info";
   }
 };
 
@@ -216,7 +461,7 @@ const handleConfirmAddClasses = async (selectedClassIds) => {
     ElMessage.info("您没有选择任何新的班级。");
     return;
   }
-  
+
   const courseId = route.params.id;
   try {
     await addClass2Course_method({
@@ -278,7 +523,11 @@ const handleConfirmAddClasses = async (selectedClassIds) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 20%, rgba(0, 0, 0, 0) 80%);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 20%,
+    rgba(0, 0, 0, 0) 80%
+  );
 }
 
 .header-info {
@@ -290,7 +539,7 @@ const handleConfirmAddClasses = async (selectedClassIds) => {
   font-size: 32px;
   font-weight: 600;
   margin: 8px 0;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .header-meta {
@@ -421,7 +670,7 @@ const handleConfirmAddClasses = async (selectedClassIds) => {
   height: 40px;
   border-radius: 50%;
   background-color: #e3efff;
-  color: #409EFF;
+  color: #409eff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -448,5 +697,16 @@ const handleConfirmAddClasses = async (selectedClassIds) => {
 
 .class-actions {
   flex-shrink: 0;
+}
+
+.outline-uploader {
+  display: block;
+  width: 100%;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 </style>

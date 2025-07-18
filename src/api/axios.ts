@@ -673,3 +673,23 @@ export const queryClassesByCourseId_method = async (courseId: number | string) =
   }
 };
 
+//上传接口
+export const uploadFile2AI = async(formData: FormData) => {
+  try {
+    const response = await apiClient.post('/upload/courseFile', formData);
+
+    if (response.data.code === 200) {
+      ElMessage.success("文件上传成功，即将开始生成课程大纲！");
+    }else {
+      ElMessage.error(response.data.message || "文件上传失败");
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!errorMessage.includes("文件上传失败")) {
+      ElMessage.error(`文件上传失败: ${errorMessage}`);
+    }
+    throw error;
+  }
+}
+
