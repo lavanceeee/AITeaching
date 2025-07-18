@@ -1,20 +1,24 @@
 <template>
   <div class="class-view-container">
-    <!-- 顶部导航区 -->
-    <div class="top-header">
-      <div class="title-area">
-        <h2 class="page-title">我的班级</h2>
-      </div>
-      <div class="action-buttons">
-        <el-button type="primary" size="small" @click="showJoinClassDialog">
-          <el-icon><Plus /></el-icon>加入班级
-        </el-button>
-      </div>
+    <div class="page-header">
+      <h1>我的班级</h1>
+      <p>您已加入的班级</p>
     </div>
 
+    <!-- 加载状态 -->
+    <div v-if="loading" class="loading-state">
+      <el-icon class="is-loading" size="28"><Loading /></el-icon>
+      <p>正在加载班级数据...</p>
+    </div>
+
+    <!-- 空状态 -->
+    <el-empty v-else-if="!classList.length" description="您尚未加入任何班级">
+      <el-button type="primary" @click="goToJoinClass">去加入班级</el-button>
+    </el-empty>
+
     <!-- 主内容区 -->
-    <div class="main-content">
-      <!-- 班级信息卡片区 -->
+    <div v-else class="main-content">
+      <!-- 左侧可折叠班级列表 -->
       <div class="sidebar-container" :class="{'collapsed': isSidebarCollapsed}">
         <div class="sidebar-header" @click="toggleSidebar">
           <span v-if="!isSidebarCollapsed">班级列表</span>
@@ -25,89 +29,57 @@
           </el-icon>
         </div>
         
-        <!-- 展开状态加载中 -->
-        <div class="loading-box" v-if="loading && !isSidebarCollapsed">
-          <el-icon class="loading-icon"><Loading /></el-icon>
-          <span>加载中...</span>
-        </div>
-        
-        <!-- 折叠状态加载中 -->
-        <div class="mini-loading" v-if="loading && isSidebarCollapsed">
-          <el-icon class="loading-icon"><Loading /></el-icon>
-        </div>
-        
-        <!-- 展开状态空数据 -->
-        <div class="empty-class-list" v-if="!loading && classList.length === 0 && !isSidebarCollapsed">
-          <el-empty :image-size="60" description="暂无班级" />
-        </div>
-        
-        <!-- 折叠状态空数据 -->
-        <div class="mini-empty" v-if="!loading && classList.length === 0 && isSidebarCollapsed">
-          <el-icon><InfoFilled /></el-icon>
-        </div>
-        
-        <div class="class-cards-container" v-show="!isSidebarCollapsed" v-if="!loading && classList.length > 0">
+        <!-- 展开状态的班级列表 -->
+        <div class="class-cards-container" v-show="!isSidebarCollapsed">
           <div 
-            v-for="classItem in classList" 
-            :key="classItem.id"
+            v-for="cls in classList" 
+            :key="cls.id"
             class="class-card"
-            @click="selectClass(classItem)"
-            :class="{'active-card': selectedClass && selectedClass.id === classItem.id}"
+            @click="selectClass(cls)"
+            :class="{'active-card': selectedClass && selectedClass.id === cls.id}"
           >
             <div class="class-card-header">
-              <span class="class-name">{{ classItem.name }}</span>
-              <el-tag size="small" effect="light">{{ classItem.major }}</el-tag>
+              <span class="class-name">{{ cls.name }}</span>
+              <el-tag size="small" effect="light">{{ cls.major }}</el-tag>
             </div>
             <div class="class-card-content">
               <div class="class-info">
                 <div class="info-item">
-                  <el-icon><User /></el-icon>
-                  <span>老师：{{ classItem.teacherName }}</span>
-                </div>
-                <div class="info-item">
                   <el-icon><School /></el-icon>
-                  <span>{{ classItem.school }}</span>
+                  <span>{{ cls.school }}</span>
                 </div>
                 <div class="info-item">
-                  <el-icon><Calendar /></el-icon>
-                  <span>{{ classItem.grade }}级</span>
-                </div>
-                <div class="info-item">
-                  <el-icon><UserFilled /></el-icon>
-                  <span>{{ classItem.studentCount }}名学生</span>
+                  <el-icon><User /></el-icon>
+                  <span>{{ cls.studentCount }}名学生</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
         
-        <!-- 折叠时显示的迷你列表 -->
-        <div class="mini-class-list" v-show="isSidebarCollapsed" v-if="!loading && classList.length > 0">
+        <!-- 折叠状态的班级列表 -->
+        <div class="mini-class-list" v-show="isSidebarCollapsed">
           <div 
-            v-for="classItem in classList" 
-            :key="classItem.id"
+            v-for="cls in classList" 
+            :key="cls.id"
             class="mini-class-item"
-            @click="selectClass(classItem)"
-            :class="{'active-mini-card': selectedClass && selectedClass.id === classItem.id}"
-            :title="classItem.name"
+            @click="selectClass(cls)"
+            :class="{'active-mini-card': selectedClass && selectedClass.id === cls.id}"
+            :title="cls.name"
           >
-            <el-avatar :size="32" :src="null" :class="{'active-avatar': selectedClass && selectedClass.id === classItem.id}">{{ classItem.name.slice(0, 2) }}</el-avatar>
+            <el-avatar :size="32" :src="null" :class="{'active-avatar': selectedClass && selectedClass.id === cls.id}">
+              {{ cls.name.slice(0, 2) }}
+            </el-avatar>
           </div>
         </div>
       </div>
 
-      <!-- 班级详情区或空状态 -->
-      <div v-if="!loading && classList.length === 0" class="empty-state">
-        <el-empty description="您还没有加入任何班级">
-          <el-button type="primary" @click="showJoinClassDialog">立即加入班级</el-button>
-        </el-empty>
-      </div>
-
-      <div v-else-if="!loading && selectedClass" class="class-detail-container">
+      <!-- 右侧班级详情 -->
+      <div class="class-detail-container" v-if="selectedClassDetails">
         <div class="class-detail-header">
           <div class="detail-title">
-            <h3>{{ selectedClass.name }}</h3>
-            <div class="detail-subtitle">{{ selectedClass.major }} · {{ selectedClass.grade }}级</div>
+            <h3>{{ selectedClassDetails.baseInfo.name }}</h3>
+            <div class="detail-subtitle">{{ selectedClassDetails.baseInfo.major }} · {{ selectedClassDetails.baseInfo.grade }}</div>
           </div>
           <div class="detail-actions">
             <el-button size="small" plain>班级公告</el-button>
@@ -115,162 +87,117 @@
           </div>
         </div>
 
-        <div class="teacher-section">
-          <div class="section-title">
-            <span>任课教师</span>
+        <!-- 班级信息卡片 -->
+        <div class="class-info-card">
+          <div class="info-card-header">
+            <h4>基本信息</h4>
           </div>
-          <div class="teacher-info">
-            <div class="avatar-container">
-              <el-avatar :size="40" :src="selectedClass.teacherAvatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'" />
-            </div>
-            <div class="teacher-detail">
-              <div class="teacher-name">{{ selectedClass.teacherName }}</div>
-              <div class="teacher-email">{{ selectedClass.teacherEmail }}</div>
+          <div class="info-card-body">
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">班级ID</span>
+                <span class="info-value">{{ selectedClassDetails.baseInfo.id }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">所属学校</span>
+                <span class="info-value">{{ selectedClassDetails.baseInfo.school }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">专业</span>
+                <span class="info-value">{{ selectedClassDetails.baseInfo.major }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">年级</span>
+                <span class="info-value">{{ selectedClassDetails.baseInfo.grade }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">学生数量</span>
+                <span class="info-value">{{ selectedClassDetails.baseInfo.studentCount }}人</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">状态</span>
+                <span class="info-value">
+                  <el-tag :type="selectedClassDetails.baseInfo.status === 0 ? 'success' : 'info'" size="small">
+                    {{ selectedClassDetails.baseInfo.status === 0 ? '正常' : '归档' }}
+                  </el-tag>
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">创建时间</span>
+                <span class="info-value">{{ formatDate(selectedClassDetails.baseInfo.createTime) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">更新时间</span>
+                <span class="info-value">{{ formatDate(selectedClassDetails.baseInfo.updateTime) }}</span>
+              </div>
             </div>
           </div>
         </div>
-        
-        <div class="classmates-section">
-          <div class="section-title">
-            <span>班级同学</span>
-            <span class="student-count">共{{ selectedClass.students.length }}人</span>
+
+        <!-- 班级学生列表 -->
+        <div class="students-section">
+          <div class="section-header">
+            <h4>班级成员</h4>
+            <span class="student-count">共{{ selectedClassDetails.students.length }}人</span>
           </div>
-          <div class="student-list">
-            <div v-for="student in selectedClass.students" :key="student.id" class="student-item">
-              <el-avatar :size="36" :src="student.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'" />
+          <div class="students-grid">
+            <div v-for="student in selectedClassDetails.students" :key="student.id" class="student-card">
+              <el-avatar :size="40" :src="student.avatar || ''">
+                {{ student.realname ? student.realname.slice(0, 1) : '?' }}
+              </el-avatar>
               <div class="student-info">
-                <div class="student-name">{{ student.name }}</div>
-                <div class="student-id">{{ student.studentId }}</div>
+                <div class="student-name">{{ student.realname }}</div>
+                <div class="student-id">{{ student.studentNumber }}</div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
-      <!-- 加载状态 -->
-      <div class="loading-state" v-if="loading">
-        <el-icon class="loading-icon"><Loading /></el-icon>
-        <span>正在加载班级信息...</span>
+
+      <!-- 右侧加载状态 -->
+      <div v-else-if="loadingDetails" class="class-detail-loading">
+        <el-icon class="is-loading" size="28"><Loading /></el-icon>
+        <p>正在加载班级详情...</p>
       </div>
     </div>
-
-    <!-- 加入班级弹窗 -->
-    <el-dialog v-model="joinClassDialogVisible" title="加入班级" width="400px">
-      <el-form :model="joinForm" :rules="joinFormRules" ref="joinFormRef" label-width="80px">
-        <el-form-item label="班级码" prop="classCode">
-          <el-input v-model="joinForm.classCode" placeholder="请输入19位班级邀请码" maxlength="19" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="joinClassDialogVisible = false" size="small">取消</el-button>
-        <el-button type="primary" @click="handleJoinClass" size="small" :loading="isJoining">申请加入</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { 
-  Plus, 
-  User, 
-  School, 
-  Calendar, 
-  UserFilled, 
-  Loading,
-  ArrowRight,
-  ArrowLeft,
-  InfoFilled
-} from '@element-plus/icons-vue';
-import { joinClass_method } from '../../../api/axios';
+import { ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { useStudentInfoStore } from '../../../store/studentInfoStore';
+import { queryClassesByStudentId_method, getClassInfoById } from '../../../api/axios';
+import { School, User, Tickets, OfficeBuilding, Loading, ArrowLeft, ArrowRight } from '@element-plus/icons-vue';
 
-const loading = ref(false);
-const isJoining = ref(false);
+const router = useRouter();
+const studentStore = useStudentInfoStore();
 const classList = ref([]);
+const loading = ref(true);
+const loadingDetails = ref(false);
 const selectedClass = ref(null);
-const joinClassDialogVisible = ref(false);
-const joinFormRef = ref(null);
+const selectedClassDetails = ref(null);
 const isSidebarCollapsed = ref(false);
 
-const joinForm = ref({
-  classCode: ''
-});
-
-const joinFormRules = {
-  classCode: [
-    { required: true, message: '请输入班级邀请码', trigger: 'blur' },
-    { pattern: /^\d{19}$/, message: '班级邀请码必须是19位数字', trigger: 'blur' }
-  ]
-};
-
-// 假数据
-const mockClasses = [
-  {
-    id: '1',
-    name: '软件工程1班',
-    major: '软件工程',
-    grade: '2023',
-    school: '华中科技大学',
-    teacherName: '张教授',
-    teacherEmail: 'zhang@university.edu',
-    teacherAvatar: '',
-    studentCount: 32,
-    students: [
-      { id: '1', name: '李明', studentId: '2023001', avatar: '' },
-      { id: '2', name: '王华', studentId: '2023002', avatar: '' },
-      { id: '3', name: '赵芳', studentId: '2023003', avatar: '' },
-      { id: '4', name: '钱伟', studentId: '2023004', avatar: '' },
-      { id: '5', name: '孙阳', studentId: '2023005', avatar: '' },
-      { id: '6', name: '周梅', studentId: '2023006', avatar: '' },
-      { id: '7', name: '吴涛', studentId: '2023007', avatar: '' },
-      { id: '8', name: '郑杰', studentId: '2023008', avatar: '' },
-    ]
-  },
-  {
-    id: '2',
-    name: '数据科学导论班',
-    major: '数据科学',
-    grade: '2023',
-    school: '北京大学',
-    teacherName: '李教授',
-    teacherEmail: 'li@university.edu',
-    teacherAvatar: '',
-    studentCount: 28,
-    students: [
-      { id: '11', name: '张三', studentId: '2023101', avatar: '' },
-      { id: '12', name: '李四', studentId: '2023102', avatar: '' },
-      { id: '13', name: '王五', studentId: '2023103', avatar: '' },
-      { id: '14', name: '刘六', studentId: '2023104', avatar: '' },
-    ]
-  },
-  {
-    id: '3',
-    name: '人工智能基础班',
-    major: '人工智能',
-    grade: '2022',
-    school: '清华大学',
-    teacherName: '陈教授',
-    teacherEmail: 'chen@university.edu',
-    teacherAvatar: '',
-    studentCount: 25,
-    students: [
-      { id: '21', name: '朱琪', studentId: '2022201', avatar: '' },
-      { id: '22', name: '秦明', studentId: '2022202', avatar: '' },
-      { id: '23', name: '胡文', studentId: '2022203', avatar: '' },
-    ]
-  }
-];
-
-// 模拟加载数据
+// 获取学生所有班级列表
 const fetchClassList = async () => {
   loading.value = true;
+  const studentId = studentStore.userInfo?.id;
+
+  if (!studentId) {
+    ElMessage.error('无法获取学生信息，请重新登录。');
+    loading.value = false;
+    return;
+  }
+
   try {
-    // 模拟API请求延迟
-    await new Promise(resolve => setTimeout(resolve, 600));
-    classList.value = mockClasses;
+    const data = await queryClassesByStudentId_method(studentId);
+    classList.value = data || [];
+    
+    // 如果有班级，自动选择第一个并加载详情
     if (classList.value.length > 0) {
-      selectedClass.value = classList.value[0];
+      selectClass(classList.value[0]);
     }
   } catch (error) {
     console.error('获取班级列表失败:', error);
@@ -279,113 +206,130 @@ const fetchClassList = async () => {
   }
 };
 
-const selectClass = (classItem) => {
-  selectedClass.value = classItem;
-};
-
-const showJoinClassDialog = () => {
-  joinClassDialogVisible.value = true;
-  joinForm.value.classCode = '';
-  if (joinFormRef.value) {
-    joinFormRef.value.resetFields();
+// 获取班级详情
+const fetchClassDetails = async (classId) => {
+  loadingDetails.value = true;
+  try {
+    const data = await getClassInfoById(classId);
+    selectedClassDetails.value = data;
+  } catch (error) {
+    console.error('获取班级详情失败:', error);
+  } finally {
+    loadingDetails.value = false;
   }
 };
 
+// 选择班级
+const selectClass = (cls) => {
+  selectedClass.value = cls;
+  fetchClassDetails(cls.id);
+};
+
+// 切换侧边栏折叠状态
 const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
 };
 
-const handleJoinClass = async () => {
-  if (!joinFormRef.value) return;
-  
-  try {
-    // 验证表单
-    await joinFormRef.value.validate();
-    
-    // 显示加载状态
-    isJoining.value = true;
-    
-    // 调用加入班级接口
-    await joinClass_method(joinForm.value.classCode);
-    
-    // 关闭对话框
-    joinClassDialogVisible.value = false;
-    
-    // 刷新班级列表
-    fetchClassList();
-    
-  } catch (error) {
-    console.error('申请加入班级失败:', error);
-  } finally {
-    isJoining.value = false;
-  }
+// 格式化日期
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('zh-CN', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+const goToJoinClass = () => {
+  router.push({ name: 'StudentJoinClass' });
 };
 
 onMounted(() => {
-  fetchClassList();
+  // 确保store中已有用户信息
+  if (studentStore.userInfo?.id) {
+    fetchClassList();
+  } else {
+    // 如果没有，可能需要等待或触发一个action来获取
+    const unwatch = watch(() => studentStore.userInfo, (newInfo) => {
+      if (newInfo?.id) {
+        fetchClassList();
+        unwatch(); // 获取到信息后停止监听
+      }
+    });
+  }
 });
 </script>
 
 <style scoped>
 .class-view-container {
-  /* 移除height设置，使用父容器的高度 */
+  padding: 24px;
+  background-color: #f7f8fa;
+  min-height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
-  background: #f7f8fa;
-  padding: 0;
-  overflow: hidden;
 }
 
-.top-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 32px;
-  background: #fff;
-  border-bottom: 1px solid #ebeef5;
+.page-header {
+  margin-bottom: 24px;
 }
 
-.page-title {
-  font-size: 20px;
-  font-weight: 500;
+.page-header h1 {
+  font-size: 24px;
+  font-weight: 600;
   color: #303133;
-  margin: 0;
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  font-size: 14px;
+  color: #909399;
+}
+
+.loading-state, .class-detail-loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  color: #909399;
 }
 
 .main-content {
-  flex: 1;
   display: flex;
   gap: 24px;
-  padding: 24px 32px;
-  /* 移除overflow设置，使用父容器的滚动 */
-  position: relative;
+  flex: 1;
+  min-height: 0;
 }
 
+/* 左侧侧边栏样式 */
 .sidebar-container {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  transition: width 0.3s;
+  width: 280px;
+  height: fit-content;
   display: flex;
   flex-direction: column;
-  border-radius: 8px;
-  border: 1px solid #ebeef5;
-  background: #fff;
-  transition: all 0.3s ease;
-  width: 280px;
-  flex-shrink: 0;
   overflow: hidden;
 }
 
 .sidebar-container.collapsed {
-  width: 68px;
+  width: 64px;
 }
 
 .sidebar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid #ebeef5;
-  cursor: pointer;
+  padding: 16px;
+  border-bottom: 1px solid #f0f2f5;
   font-weight: 500;
   color: #303133;
+  cursor: pointer;
   user-select: none;
 }
 
@@ -402,48 +346,50 @@ onMounted(() => {
 }
 
 .class-cards-container {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  overflow-y: auto;
+  gap: 12px;
   padding: 16px;
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 .class-card {
-  background: #fff;
-  border-radius: 8px;
-  border: 1px solid #ebeef5;
-  transition: all 0.25s;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
+  transition: all 0.2s;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .class-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border-color: #c0c4cc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .active-card {
-  border-color: #4096ff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border-color: #409EFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .class-card-header {
-  padding: 14px 16px;
-  border-bottom: 1px solid #f0f2f5;
+  padding: 12px;
+  background: #f7f8fa;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .class-name {
-  font-size: 16px;
   font-weight: 500;
   color: #303133;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .class-card-content {
-  padding: 12px 16px;
+  padding: 12px;
 }
 
 .class-info {
@@ -460,28 +406,24 @@ onMounted(() => {
   color: #606266;
 }
 
-/* 迷你列表样式 */
+/* 折叠状态的迷你列表 */
 .mini-class-list {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
   padding: 16px 0;
+  gap: 16px;
+  max-height: 600px;
   overflow-y: auto;
 }
 
 .mini-class-item {
-  cursor: pointer;
-  border-radius: 50%;
-  transition: all 0.25s;
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  cursor: pointer;
 }
 
-.mini-class-item:hover {
-  transform: translateY(-2px);
+.mini-class-item:hover .el-avatar {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .active-mini-card::after {
@@ -489,111 +431,122 @@ onMounted(() => {
   position: absolute;
   width: 6px;
   height: 6px;
-  background: #4096ff;
+  background: #409EFF;
   border-radius: 50%;
-  bottom: -4px;
+  bottom: -6px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-.active-mini-card .el-avatar {
-  border: 2px solid #4096ff;
+.active-avatar {
+  border: 2px solid #409EFF;
 }
 
+/* 右侧详情区域 */
 .class-detail-container {
   flex: 1;
-  background: #fff;
-  border-radius: 8px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  border: 1px solid #ebeef5;
+  gap: 24px;
+  overflow-y: auto;
 }
 
 .class-detail-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid #f0f2f5;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .detail-title h3 {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: 18px;
-  font-weight: 500;
+  font-weight: 600;
+  color: #303133;
 }
 
 .detail-subtitle {
   color: #909399;
-  font-size: 13px;
+  font-size: 14px;
 }
 
-.teacher-section, .classmates-section {
-  padding: 20px 24px;
+.class-info-card, .students-section {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  overflow: hidden;
+}
+
+.info-card-header, .section-header {
+  padding: 16px 20px;
   border-bottom: 1px solid #f0f2f5;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
-  margin-bottom: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.student-count {
-  font-size: 13px;
-  color: #909399;
-  font-weight: normal;
-}
-
-.teacher-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.teacher-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.teacher-name {
-  font-size: 15px;
+.info-card-header h4, .section-header h4 {
+  margin: 0;
+  font-size: 16px;
   font-weight: 500;
   color: #303133;
 }
 
-.teacher-email {
+.info-card-body {
+  padding: 20px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.info-label {
   font-size: 13px;
   color: #909399;
 }
 
-.student-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+.info-value {
+  font-size: 14px;
+  color: #303133;
+  font-weight: 500;
 }
 
-.student-item {
+.students-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  padding: 20px;
+}
+
+.student-card {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: 200px;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #f0f2f5;
 }
 
 .student-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .student-name {
   font-size: 14px;
+  font-weight: 500;
   color: #303133;
 }
 
@@ -602,85 +555,32 @@ onMounted(() => {
   color: #909399;
 }
 
-.empty-state {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.loading-state {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
+.student-count {
+  font-size: 13px;
   color: #909399;
-}
-
-.loading-icon {
-  font-size: 24px;
-  animation: spin 1.2s infinite linear;
-}
-
-.loading-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 30px 0;
-  color: #909399;
-  gap: 10px;
-}
-
-.mini-loading, .mini-empty {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  color: #909399;
-  font-size: 20px;
-}
-
-.empty-class-list {
-  padding: 20px 0;
-  display: flex;
-  justify-content: center;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {
   .main-content {
     flex-direction: column;
-    padding: 16px;
-    gap: 16px;
   }
   
   .sidebar-container {
     width: 100%;
-    max-height: unset;
+    margin-bottom: 16px;
   }
   
   .sidebar-container.collapsed {
     width: 100%;
-    max-height: 48px;
-  }
-
-  .mini-class-list {
-    display: none;
+    height: 60px;
   }
   
-  .student-list {
-    gap: 16px;
+  .info-grid {
+    grid-template-columns: 1fr;
   }
   
-  .student-item {
-    width: 100%;
+  .students-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

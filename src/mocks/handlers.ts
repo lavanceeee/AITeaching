@@ -927,4 +927,25 @@ export const handlers = [
       timestamp: Date.now()
     });
   }),
+
+  // 根据学生ID查询其加入的班级列表
+  http.get(`${API_PREFIX}/studentClass/queryByStudentId/:studentId`, ({ params }) => {
+    const { studentId } = params;
+    console.log(`MSW: 拦截到根据学生ID ${studentId} 查询班级列表请求`);
+
+    // 模拟返回该学生已加入的班级列表 (取前5个作为示例)
+    const studentClasses = mockClassesDb.slice(0, 5).map(cls => ({
+      ...cls,
+      grade: `${cls.grade}级`, // 确保和文档格式一致
+      createBy: `mock-creator-for-student-${studentId}`,
+      updateTime: cls.createTime, 
+    }));
+
+    return HttpResponse.json({
+      code: 200, // 与axios.ts中的逻辑保持一致
+      message: "查询成功 (MSW)",
+      data: studentClasses,
+      timestamp: Date.now()
+    });
+  }),
 ]; 

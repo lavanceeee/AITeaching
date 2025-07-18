@@ -607,3 +607,22 @@ export const getClassInfoById = async (classId: string) => {
   }
 };
 
+// 根据学生ID查询班级列表
+export const queryClassesByStudentId_method = async (studentId: string | number) => {
+  try {
+    const response = await apiClient.get(`/studentClass/queryByStudentId/${studentId}`);
+    if (response.data.code === 200) {
+      return response.data.data;
+    } else {
+      ElMessage.error(response.data.message || '获取班级列表失败');
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!errorMessage.includes('获取班级列表失败')) {
+      ElMessage.error(`获取班级列表失败: ${errorMessage}`);
+    }
+    throw error;
+  }
+};
+
