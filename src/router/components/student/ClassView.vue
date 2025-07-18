@@ -3,6 +3,13 @@
     <div class="page-header">
       <h1>我的班级</h1>
       <p>您已加入的班级</p>
+      <el-button 
+        type="primary" 
+        class="join-class-btn" 
+        @click="showJoinClassDialog"
+      >
+        <el-icon><Plus /></el-icon>加入班级
+      </el-button>
     </div>
 
     <!-- 加载状态 -->
@@ -161,6 +168,21 @@
       </div>
     </div>
   </div>
+
+  <!-- 加入班级弹窗 -->
+  <el-dialog v-model="joinClassDialogVisible" title="加入班级" width="400px">
+    <el-form :model="joinForm" :rules="joinFormRules" ref="joinFormRef" label-width="80px">
+      <el-form-item label="班级码" prop="classCode">
+        <el-input v-model="joinForm.classCode" placeholder="请输入19位班级邀请码" maxlength="19" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="joinClassDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="handleJoinClass" :loading="isJoining">申请加入</el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
@@ -168,8 +190,8 @@ import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useStudentInfoStore } from '../../../store/studentInfoStore';
-import { queryClassesByStudentId_method, getClassInfoById } from '../../../api/axios';
-import { School, User, Tickets, OfficeBuilding, Loading, ArrowLeft, ArrowRight } from '@element-plus/icons-vue';
+import { queryClassesByStudentId_method, getClassInfoById, joinClass_method } from '../../../api/axios';
+import { School, User, Tickets, OfficeBuilding, Loading, ArrowLeft, ArrowRight, Plus } from '@element-plus/icons-vue';
 
 const router = useRouter();
 const studentStore = useStudentInfoStore();
@@ -178,7 +200,22 @@ const loading = ref(true);
 const loadingDetails = ref(false);
 const selectedClass = ref(null);
 const selectedClassDetails = ref(null);
-const isSidebarCollapsed = ref(false);
+const isSidebarCollapsed = ref(true); // 修改为默认收起
+
+// 加入班级相关
+const joinClassDialogVisible = ref(false);
+const joinFormRef = ref(null);
+const isJoining = ref(false);
+const joinForm = ref({
+  classCode: ''
+});
+
+const joinFormRules = {
+  classCode: [
+    { required: true, message: '请输入班级邀请码', trigger: 'blur' },
+    { pattern: /^\d{19}$/, message: '班级邀请码必须是19位数字', trigger: 'blur' }
+  ]
+};
 
 // 获取学生所有班级列表
 const fetchClassList = async () => {
@@ -247,6 +284,42 @@ const goToJoinClass = () => {
   router.push({ name: 'StudentJoinClass' });
 };
 
+// 显示加入班级对话框
+const showJoinClassDialog = () => {
+  joinClassDialogVisible.value = true;
+  joinForm.value.classCode = '';
+  if (joinFormRef.value) {
+    joinFormRef.value.resetFields();
+  }
+};
+
+// 处理加入班级请求
+const handleJoinClass = async () => {
+  if (!joinFormRef.value) return;
+  
+  try {
+    // 验证表单
+    await joinFormRef.value.validate();
+    
+    // 显示加载状态
+    isJoining.value = true;
+    
+    // 调用加入班级接口
+    await joinClass_method(joinForm.value.classCode);
+    
+    // 关闭对话框
+    joinClassDialogVisible.value = false;
+    
+    // 刷新班级列表
+    fetchClassList();
+    
+  } catch (error) {
+    console.error('申请加入班级失败:', error);
+  } finally {
+    isJoining.value = false;
+  }
+};
+
 onMounted(() => {
   // 确保store中已有用户信息
   if (studentStore.userInfo?.id) {
@@ -274,6 +347,7 @@ onMounted(() => {
 
 .page-header {
   margin-bottom: 24px;
+  position: relative;
 }
 
 .page-header h1 {
@@ -286,6 +360,12 @@ onMounted(() => {
 .page-header p {
   font-size: 14px;
   color: #909399;
+}
+
+.join-class-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .loading-state, .class-detail-loading {
@@ -343,6 +423,14 @@ onMounted(() => {
 
 .sidebar-header .is-collapsed {
   transform: rotate(180deg);
+}
+
+/* 修复箭头样式 */
+.sidebar-header .el-icon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .class-cards-container {
@@ -558,6 +646,12 @@ onMounted(() => {
 .student-count {
   font-size: 13px;
   color: #909399;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 @media (max-width: 768px) {
