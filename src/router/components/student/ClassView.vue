@@ -150,10 +150,10 @@
           <div class="students-grid">
             <div v-for="student in selectedClassDetails.students" :key="student.id" class="student-card">
               <el-avatar :size="40" :src="student.avatar || ''">
-                {{ student.realname ? student.realname.slice(0, 1) : '?' }}
+                {{ student.realName ? student.realname.slice(0, 1) : '?' }}
               </el-avatar>
               <div class="student-info">
-                <div class="student-name">{{ student.realname }}</div>
+                <div class="student-name">{{ student.realName }}</div>
                 <div class="student-id">{{ student.studentNumber }}</div>
               </div>
             </div>
