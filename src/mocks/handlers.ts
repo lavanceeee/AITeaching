@@ -1001,7 +1001,7 @@ export const handlers = [
     }));
 
     return HttpResponse.json({
-      code: 0, // 根据 axios.ts 的修改，成功码为 0
+      code: 200, 
       message: '查询成功 (MSW)',
       data: associatedClasses,
       timestamp: Date.now()
@@ -1028,4 +1028,195 @@ export const handlers = [
       timestamp: Date.now()
     });
   }),
+
+  // 课程文件上传接口
+  http.post(`${API_PREFIX}/upload/courseFile`, async ({ request }) => {
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    const courseId = formData.get('courseId');
+
+    console.log('MSW: 拦截到课程文件上传请求', { fileName: file?.name, courseId });
+
+    if (!file) {
+      return HttpResponse.json({
+        code: 400,
+        message: '没有找到上传的文件',
+        data: null
+      });
+    }
+
+    if (!courseId) {
+      return HttpResponse.json({
+        code: 400,
+        message: '缺少课程ID参数',
+        data: null
+      });
+    }
+
+    // 模拟文件类型检查
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    if (!allowedTypes.includes(file.type)) {
+      return HttpResponse.json({
+        code: 400,
+        message: '不支持的文件类型，请上传PDF、Word或TXT文件',
+        data: null
+      });
+    }
+
+    // 模拟文件大小限制
+    if (file.size > 10 * 1024 * 1024) { // 10MB限制
+      return HttpResponse.json({
+        code: 400,
+        message: '文件大小超过限制（最大10MB）',
+        data: null
+      });
+    }
+
+    // 返回成功响应
+    return HttpResponse.json({
+      code: 200,
+      message: '文件上传成功，正在处理中',
+      data: {
+        fileId: `mock-file-${Date.now()}`,
+        fileName: file.name,
+        fileSize: file.size,
+        courseId: courseId,
+        uploadTime: new Date().toISOString()
+      }
+    });
+  }),
 ]; 
+
+// 模拟WebSocket服务器响应
+// 注意：这段代码只是用于前端开发时的模拟，实际WebSocket连接由后端提供
+// 在实际项目中，这部分逻辑应该由真实的WebSocket服务器处理
+if (typeof window !== 'undefined') {
+  // 创建一个模拟的WebSocket服务器
+  class MockWebSocketServer {
+    private static instance: MockWebSocketServer;
+    private connections: Set<WebSocket> = new Set();
+    
+    private constructor() {
+      console.log('MSW: 初始化模拟WebSocket服务器');
+      this.setupMockServer();
+    }
+    
+    public static getInstance(): MockWebSocketServer {
+      if (!MockWebSocketServer.instance) {
+        MockWebSocketServer.instance = new MockWebSocketServer();
+      }
+      return MockWebSocketServer.instance;
+    }
+    
+    private setupMockServer() {
+      // 监听WebSocket连接请求
+      const originalWebSocket = window.WebSocket;
+      window.WebSocket = class extends originalWebSocket {
+        constructor(url: string | URL, protocols?: string | string[]) {
+          if (url.toString().includes('ws://localhost:8080/ws/chat')) {
+            console.log('MSW: 拦截到WebSocket连接请求', url);
+            // 不再连接到echo服务，而是创建一个假的WebSocket对象
+            super('ws://localhost:1234'); // 使用一个不存在的本地地址，这样不会真正建立连接
+            
+            // 立即阻止真正的连接尝试
+            this.close();
+            
+            const mockServer = MockWebSocketServer.getInstance();
+            mockServer.addConnection(this);
+            
+            // 延迟发送模拟消息
+            setTimeout(() => {
+              // 手动触发open事件
+              const openEvent = new Event('open');
+              this.dispatchEvent(openEvent);
+              
+              // 模拟处理进度消息
+              setTimeout(() => {
+                const progressMsg = JSON.stringify({
+                  type: 'progress',
+                  data: {
+                    progress: 25,
+                    message: '正在分析文档内容...'
+                  }
+                });
+                this.dispatchEvent(new MessageEvent('message', { data: progressMsg }));
+              }, 1500);
+              
+              setTimeout(() => {
+                const progressMsg = JSON.stringify({
+                  type: 'progress',
+                  data: {
+                    progress: 50,
+                    message: '提取关键知识点...'
+                  }
+                });
+                this.dispatchEvent(new MessageEvent('message', { data: progressMsg }));
+              }, 3000);
+              
+              setTimeout(() => {
+                const progressMsg = JSON.stringify({
+                  type: 'progress',
+                  data: {
+                    progress: 75,
+                    message: '组织课程大纲结构...'
+                  }
+                });
+                this.dispatchEvent(new MessageEvent('message', { data: progressMsg }));
+              }, 4500);
+              
+              // 最终发送完成消息
+              setTimeout(() => {
+                const completeMsg = JSON.stringify({
+                  type: 'complete',
+                  data: {
+                    outline: [
+                      {
+                        title: '第一章：课程介绍',
+                        content: '本章介绍课程的基本内容和学习目标',
+                        children: [
+                          { title: '1.1 课程概述', content: '介绍课程的主要内容和结构' },
+                          { title: '1.2 学习目标', content: '明确本课程的学习目标和预期成果' }
+                        ]
+                      },
+                      {
+                        title: '第二章：基础知识',
+                        content: '介绍相关的基础知识和核心概念',
+                        children: [
+                          { title: '2.1 核心概念', content: '解释领域内的核心概念和术语' },
+                          { title: '2.2 基本原理', content: '讲解基本原理和理论基础' }
+                        ]
+                      },
+                      {
+                        title: '第三章：实践应用',
+                        content: '探讨知识在实际中的应用',
+                        children: [
+                          { title: '3.1 案例分析', content: '通过案例分析理解实际应用' },
+                          { title: '3.2 实践技巧', content: '掌握关键的实践技巧和方法' }
+                        ]
+                      }
+                    ]
+                  }
+                });
+                this.dispatchEvent(new MessageEvent('message', { data: completeMsg }));
+              }, 6000);
+              
+            }, 500);
+          } else {
+            super(url, protocols);
+          }
+        }
+      };
+    }
+    
+    public addConnection(ws: WebSocket) {
+      this.connections.add(ws);
+      
+      ws.addEventListener('close', () => {
+        this.connections.delete(ws);
+      });
+    }
+  }
+  
+  // 初始化模拟WebSocket服务器
+  MockWebSocketServer.getInstance();
+} 

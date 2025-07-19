@@ -60,13 +60,38 @@
                 </div>
                 <div class="panel-body">
                   <p class="course-description">{{ course.description }}</p>
-                  <!-- Mocked outline -->
-                  <!-- <el-timeline style="margin-top: 20px;">
-                    <el-timeline-item timestamp="第一章: Java入门" placement="top">基础语法与环境搭建</el-timeline-item>
-                    <el-timeline-item timestamp="第二章: 面向对象" placement="top">类、对象、继承、多态</el-timeline-item>
-                    <el-timeline-item timestamp="第三章: 核心API" placement="top">集合框架、IO流、多线程</el-timeline-item>
-                    <el-timeline-item timestamp="第四章: 数据库编程" placement="top">JDBC与数据库连接池</el-timeline-item>
-                  </el-timeline> -->
+                  
+                  <!-- 大纲生成中的加载动画 -->
+                  <div v-if="generatingOutline" class="outline-generating">
+                    <el-progress 
+                      :percentage="generationProgress" 
+                      :status="generationProgress >= 100 ? 'success' : ''"
+                      :stroke-width="10"
+                    />
+                    <div class="generation-status">
+                      <el-icon class="is-loading" size="24"><Loading /></el-icon>
+                      <span>{{ generationMessage || '正在生成课程大纲...' }}</span>
+                    </div>
+                  </div>
+                  
+                  <!-- 大纲内容展示 -->
+                  <el-timeline v-else-if="courseOutline && courseOutline.length > 0" style="margin-top: 20px;">
+                    <el-timeline-item 
+                      v-for="(chapter, index) in courseOutline" 
+                      :key="index"
+                      :timestamp="chapter.title" 
+                      placement="top"
+                    >
+                      {{ chapter.content }}
+                    </el-timeline-item>
+                  </el-timeline>
+                  
+                  <!-- 无大纲时的提示 -->
+                  <el-empty 
+                    v-else 
+                    description="暂无课程大纲，请点击上方按钮上传课程材料生成大纲" 
+                    :image-size="100"
+                  />
                 </div>
               </div>
             </el-tab-pane>
@@ -250,14 +275,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineAsyncComponent, computed } from "vue";
+import { ref, onMounted, defineAsyncComponent, computed, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import {
   getCourseDetails_method,
   queryClassesByCourseId_method,
   addClass2Course_method,
 } from "../../api/axios";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElLoading } from "element-plus";
 import {
   Loading,
   User,
@@ -286,9 +311,38 @@ const uploadFormRef = ref(null);
 const associatedClasses = ref([]);
 const associatedClassesLoading = ref(false);
 
+// 大纲生成相关状态
+const generatingOutline = ref(false);
+const generationProgress = ref(0);
+const generationMessage = ref('');
+const courseOutline = ref([]);
+let wsConnection = null;
+let loadingInstance = null;
+
 const associatedClassIds = computed(() =>
   associatedClasses.value.map((c) => c.id)
 );
+
+const startLoading = () => {
+  generatingOutline.value = true;
+  generationProgress.value = 0;
+  generationMessage.value = '正在初始化...';
+}
+
+const endLoading = () => {
+  generatingOutline.value = false;
+  generationProgress.value = 100;
+}
+
+const handleProgress = (progress, message) => {
+  generationProgress.value = progress;
+  generationMessage.value = message;
+}
+
+const handleResult = (outline) => {
+  courseOutline.value = outline;
+  generatingOutline.value = false;
+}
 
 // 文件上传表单
 const uploadForm = ref({
@@ -419,17 +473,33 @@ const submitUpload = async () => {
       formData.append("file", uploadForm.value.file);
       formData.append("courseId", route.params.id);
 
-      //上传文件
-      uploadFile2AI(formData);
-
-      isUploadOutlineDialogVisible.value = false;
-
-      uploading.value = false;
+      try {
+        // 上传文件并处理WebSocket连接
+        wsConnection = await uploadFile2AI(formData, {
+          onLoadingStart: startLoading,
+          onLoadingEnd: endLoading,
+          onProgress: handleProgress,
+          onResult: handleResult
+        });
+        
+        isUploadOutlineDialogVisible.value = false;
+      } catch (error) {
+        console.error("文件上传失败:", error);
+      } finally {
+        uploading.value = false;
+      }
     } else {
       ElMessage.error("请完成必填项");
     }
   });
 };
+
+// 组件卸载时关闭WebSocket连接
+onUnmounted(() => {
+  if (wsConnection && wsConnection.readyState !== WebSocket.CLOSED) {
+    wsConnection.close();
+  }
+});
 
 onMounted(() => {
   fetchCourseDetails();
@@ -702,6 +772,47 @@ const handleConfirmAddClasses = async (selectedClassIds) => {
 .outline-uploader {
   display: block;
   width: 100%;
+}
+
+.outline-generating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f7f8fa;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
+}
+
+.generation-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: #606266;
+  font-size: 14px;
+}
+
+.sub-chapters {
+  margin-left: 20px;
+  padding-left: 10px;
+  border-left: 2px solid #e8e8e8;
+}
+
+.sub-chapter-item {
+  margin-top: 10px;
+}
+
+.sub-chapter-title {
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 5px;
+}
+
+.sub-chapter-content {
+  color: #606266;
+  line-height: 1.5;
 }
 
 .dialog-footer {
