@@ -690,11 +690,10 @@ export const uploadFile2AI = async(
 
   const { onLoadingStart, onLoadingEnd, onResult, onProgress } = callbacks;
   try {
-    console.log(formData, "forData")
-    const response = await apiClient.post('/upload/courseFile', formData, {
+    const response = await apiClient.post('/upload/courseFile', formData,{
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+    'Content-Type': 'multipart/form-data'
+  }
     });
 
     if (response.data.code === 200) {
