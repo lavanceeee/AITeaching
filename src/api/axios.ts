@@ -679,88 +679,119 @@ interface UploadFileCallbacks {
   onLoadingEnd?: () => void;
   onProgress?: (progress: number, message: string) => void;
   onResult?: (outline: any) => void;
+  onError?: (error: string) => void;
 }
 
-
-//上传接口
-export const uploadFile2AI = async(
+export const uploadFile2AI = async (
   formData: FormData,
   callbacks: UploadFileCallbacks = {}
 ) => {
+  const { onLoadingStart, onLoadingEnd, onResult, onProgress, onError } = callbacks;
+  let ws: WebSocket | null = null;
+  let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 
-  const { onLoadingStart, onLoadingEnd, onResult, onProgress } = callbacks;
+  const startHeartbeat = (socket: WebSocket) => {
+    heartbeatInterval = setInterval(() => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send("heartbeat");
+      }
+    }, 30000);
+  };
+
+  const stopHeartbeat = () => {
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+    }
+  };
+
   try {
-    const response = await apiClient.post('/upload/courseFile', formData,{
+    const response = await apiClient.post("/rag/document", formData, {
       headers: {
-    'Content-Type': 'multipart/form-data'
-  }
+        "Content-Type": "multipart/form-data",
+      },
     });
 
     if (response.data.code === 200) {
-      ElMessage.success("文件上传成功，即将开始生成课程大纲！");
+      ElMessage.success("文件上传成功，正在后台处理");
+      const taskId = response.data.data.taskId;
+      const token = localStorage.getItem("token");
 
-      const ws = new WebSocket("ws://localhost:8080/ws/chat");
+      if (!token) {
+        ElMessage.error("未找到认证信息，无法连接WebSocket");
+        onError && onError("认证失败");
+        return;
+      }
+
+      ws = new WebSocket(`ws://localhost:8080/ws/ss?token=${token}`);
 
       ws.onopen = () => {
         console.log("WebSocket连接已建立");
-        //加载动画
         onLoadingStart && onLoadingStart();
+        if (ws) {
+          startHeartbeat(ws);
+        }
       };
 
       ws.onmessage = (event) => {
+        if (event.data === "heartbeat_ack") {
+          console.log("收到心跳响应");
+          return;
+        }
+
         try {
           const message = JSON.parse(event.data);
+          
+          if (message.taskId !== taskId) return;
 
-          // 处理不同类型的消息
           switch (message.type) {
-            case 'progress':
-              // 处理进度更新
-              console.log("生成进度:", message.data.progress, message.data.message);
-              onProgress && onProgress(message.data.progress, message.data.message);
+            case "RAG_PROGRESS":
+              onProgress && onProgress(message.progress, message.message);
               break;
-
-            case 'complete':
-              // 处理生成完成
-              console.log("生成完成，大纲数据:", message.data.outline);
-              onResult && onResult(message.data.outline);
+            case "RAG_STATUS":
+              if (message.status === "COMPLETED") {
+                onResult && onResult( message.message );
+                onLoadingEnd && onLoadingEnd();
+                ws?.close();
+              } else if (["FAILED", "CANCELLED"].includes(message.status)) {
+                onError && onError(message.message);
+                onLoadingEnd && onLoadingEnd();
+                ws?.close();
+              }
+              break;
+            case "RAG_ERROR":
+              onError && onError(message.message);
               onLoadingEnd && onLoadingEnd();
-
-              // 完成后关闭WebSocket连接
-              ws.close();
+              ws?.close();
               break;
-
-            default:
-              console.log("收到未知类型的WebSocket消息:", message);
           }
         } catch (error) {
           console.error("解析WebSocket消息失败:", error);
-          onLoadingEnd && onLoadingEnd();
-          ElMessage.error("处理服务器消息失败");
         }
       };
 
       ws.onerror = (error) => {
         console.error("WebSocket错误:", error);
+        onError && onError("WebSocket通信失败");
         onLoadingEnd && onLoadingEnd();
-        ElMessage.error("WebSocket通信失败");
       };
 
       ws.onclose = () => {
         console.log("WebSocket连接已关闭");
-      }
+        stopHeartbeat();
+      };
 
-      // 返回WebSocket实例，以便调用者可以在需要时手动关闭连接
       return ws;
-    }else {
+    } else {
       ElMessage.error(response.data.message || "文件上传失败");
       throw new Error(response.data.message);
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
     if (!errorMessage.includes("文件上传失败")) {
       ElMessage.error(`文件上传失败: ${errorMessage}`);
     }
     throw error;
   }
-}
+};
 

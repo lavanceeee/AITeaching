@@ -319,10 +319,6 @@ const courseOutline = ref([]);
 let wsConnection = null;
 let loadingInstance = null;
 
-const associatedClassIds = computed(() =>
-  associatedClasses.value.map((c) => c.id)
-);
-
 const startLoading = () => {
   generatingOutline.value = true;
   generationProgress.value = 0;
@@ -330,8 +326,10 @@ const startLoading = () => {
 }
 
 const endLoading = () => {
-  generatingOutline.value = false;
   generationProgress.value = 100;
+  setTimeout(() => {
+    generatingOutline.value = false;
+  }, 1000);
 }
 
 const handleProgress = (progress, message) => {
@@ -339,8 +337,25 @@ const handleProgress = (progress, message) => {
   generationMessage.value = message;
 }
 
-const handleResult = (outline) => {
-  courseOutline.value = outline;
+const handleResult = async (message) => {
+  
+  ElMessage.success(message);
+  
+  // try {
+    
+  //   //结束后获取详细信息
+  //   const outlineData = await getCourseOutline_method(route.params.id);
+  //   courseOutline.value = outlineData;
+  // } catch (error) {
+  //   console.error("获取课程大纲失败:", error);
+  //   ElMessage.error("获取课程大纲失败");
+  // } finally {
+  //   generationProgress.value = 100;
+  // }
+}
+
+const handleError = (error) => {
+  ElMessage.error(error);
   generatingOutline.value = false;
 }
 
@@ -479,7 +494,8 @@ const submitUpload = async () => {
           onLoadingStart: startLoading,
           onLoadingEnd: endLoading,
           onProgress: handleProgress,
-          onResult: handleResult
+          onResult: handleResult,
+          onError: handleError
         });
         
         isUploadOutlineDialogVisible.value = false;
