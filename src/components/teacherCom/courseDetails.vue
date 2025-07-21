@@ -75,16 +75,9 @@
                   </div>
                   
                   <!-- 大纲内容展示 -->
-                  <el-timeline v-else-if="courseOutline && courseOutline.length > 0" style="margin-top: 20px;">
-                    <el-timeline-item 
-                      v-for="(chapter, index) in courseOutline" 
-                      :key="index"
-                      :timestamp="chapter.title" 
-                      placement="top"
-                    >
-                      {{ chapter.content }}
-                    </el-timeline-item>
-                  </el-timeline>
+                  <div v-else-if="courseOutline" class="generated-outline">
+                    <pre>{{ courseOutline }}</pre>
+                  </div>
                   
                   <!-- 无大纲时的提示 -->
                   <el-empty 
@@ -317,7 +310,7 @@ const associatedClassesLoading = ref(false);
 const generatingOutline = ref(false);
 const generationProgress = ref(0);
 const generationMessage = ref('');
-const courseOutline = ref([]);
+const courseOutline = ref(''); // 1. 简化数据结构：修改为字符串
 let wsConnection = null;
 let loadingInstance = null;
 
@@ -363,41 +356,16 @@ const handleResult = async (message) => {
 }
 
 const processOutlineStream = async (stream) => {
-  courseOutline.value = [];
+  courseOutline.value = ''; // 重置为空字符串
 
   const onParse = (event) => {
     const data = event.data;
-    if (data === undefined || data.trim() === '' || data === '[DONE]') {
+    if (data === undefined || data === '[DONE]') {
       return;
     }
-    
-    // 解析Markdown格式
-    if (data.startsWith('### ')) {
-      const title = data.substring(4).trim();
-      const lastChapter = courseOutline.value[courseOutline.value.length - 1];
-      if (lastChapter) {
-        if (!lastChapter.children) {
-          lastChapter.children = [];
-        }
-        lastChapter.children.push({ title: title, content: '' });
-      }
-    } else if (data.startsWith('## ')) {
-      const title = data.substring(3).trim();
-      courseOutline.value.push({ title: title, content: '', children: [] });
-    } else if (data.startsWith('# ')) {
-      const title = data.substring(2).trim();
-      courseOutline.value = [{ title: title, content: '', children: [] }];
-    } else {
-      const lastChapter = courseOutline.value[courseOutline.value.length - 1];
-      if (lastChapter) {
-        if (lastChapter.children && lastChapter.children.length > 0) {
-          const lastSubChapter = lastChapter.children[lastChapter.children.length - 1];
-          lastSubChapter.content += data + '\n';
-        } else {
-          lastChapter.content += data + '\n';
-        }
-      }
-    }
+    // 2. 简化处理逻辑：直接追加数据并打印日志
+    console.log("SSE 收到数据:", data); 
+    courseOutline.value += data + '\n'; 
   };
 
   const parser = createParser({
@@ -898,6 +866,16 @@ const handleConfirmAddClasses = async (selectedClassIds) => {
 .sub-chapter-content {
   color: #606266;
   line-height: 1.5;
+}
+
+.generated-outline {
+  margin-top: 24px;
+  padding: 20px;
+  background-color: #f7f8fa;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  white-space: pre-wrap; /* 3. 简化显示：确保长文本能换行 */
+  word-wrap: break-word;
 }
 
 .dialog-footer {
