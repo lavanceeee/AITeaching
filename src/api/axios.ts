@@ -744,12 +744,10 @@ export const uploadFile2AI = async (
           if (message.taskId !== taskId) return;
 
           switch (message.type) {
-            case "RAG_PROGRESS":
+            case "document_progress":
               onProgress && onProgress(message.progress, message.message);
-              break;
-            case "RAG_STATUS":
               if (message.status === "COMPLETED") {
-                onResult && onResult( message.message );
+                onResult && onResult(message.message);
                 onLoadingEnd && onLoadingEnd();
                 ws?.close();
               } else if (["FAILED", "CANCELLED"].includes(message.status)) {
@@ -757,11 +755,6 @@ export const uploadFile2AI = async (
                 onLoadingEnd && onLoadingEnd();
                 ws?.close();
               }
-              break;
-            case "RAG_ERROR":
-              onError && onError(message.message);
-              onLoadingEnd && onLoadingEnd();
-              ws?.close();
               break;
           }
         } catch (error) {
