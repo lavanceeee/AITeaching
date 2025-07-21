@@ -345,7 +345,10 @@ const handleResult = async (message) => {
 
   try {
     // SSE
+    console.log("开始自动提交AI请求");
     const response = await get_docsoutline(route.params.id);
+    console.log("请求体",response.body);
+    
     if (response.body) {
       await processOutlineStream(response.body);
     } else {
