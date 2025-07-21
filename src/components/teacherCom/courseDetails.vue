@@ -294,6 +294,8 @@ import {
   Document,
 } from "@element-plus/icons-vue";
 import { uploadFile2AI } from "../../api/axios";
+import { get_docsoutline } from "../../api/axios";
+import { createParser } from 'eventsource-parser';
 
 const SelectClass = defineAsyncComponent(() => import("./selectClass.vue"));
 const EditCourse = defineAsyncComponent(() => import("./EditCourse.vue"));
@@ -340,19 +342,83 @@ const handleProgress = (progress, message) => {
 const handleResult = async (message) => {
   
   ElMessage.success(message);
-  
-  // try {
-    
-  //   //结束后获取详细信息
-  //   const outlineData = await getCourseOutline_method(route.params.id);
-  //   courseOutline.value = outlineData;
-  // } catch (error) {
-  //   console.error("获取课程大纲失败:", error);
-  //   ElMessage.error("获取课程大纲失败");
-  // } finally {
-  //   generationProgress.value = 100;
-  // }
+
+  try {
+    // SSE
+    const response = await get_docsoutline(route.params.id);
+    if (response.body) {
+      await processOutlineStream(response.body);
+    } else {
+      throw new Error("响应体为空");
+    }
+  } catch(error) {
+    console.error("获取大纲SSE流失败:", error);
+    ElMessage.error("获取生成的大纲失败");
+  } finally {
+    generationProgress.value = 100;
+  }
 }
+
+const processOutlineStream = async (stream) => {
+  courseOutline.value = [];
+
+  const onParse = (event) => {
+    const data = event.data;
+    if (data === undefined || data.trim() === '' || data === '[DONE]') {
+      return;
+    }
+    
+    // 解析Markdown格式
+    if (data.startsWith('### ')) {
+      const title = data.substring(4).trim();
+      const lastChapter = courseOutline.value[courseOutline.value.length - 1];
+      if (lastChapter) {
+        if (!lastChapter.children) {
+          lastChapter.children = [];
+        }
+        lastChapter.children.push({ title: title, content: '' });
+      }
+    } else if (data.startsWith('## ')) {
+      const title = data.substring(3).trim();
+      courseOutline.value.push({ title: title, content: '', children: [] });
+    } else if (data.startsWith('# ')) {
+      const title = data.substring(2).trim();
+      courseOutline.value = [{ title: title, content: '', children: [] }];
+    } else {
+      const lastChapter = courseOutline.value[courseOutline.value.length - 1];
+      if (lastChapter) {
+        if (lastChapter.children && lastChapter.children.length > 0) {
+          const lastSubChapter = lastChapter.children[lastChapter.children.length - 1];
+          lastSubChapter.content += data + '\n';
+        } else {
+          lastChapter.content += data + '\n';
+        }
+      }
+    }
+  };
+
+  const parser = createParser({
+    onEvent: onParse,
+    onError: (err) => console.error('SSE Parser Error:', err),
+  });
+
+  const reader = stream.getReader();
+  const decoder = new TextDecoder('utf-8');
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+      const chunk = decoder.decode(value, { stream: true });
+      parser.feed(chunk);
+    }
+  } finally {
+    reader.releaseLock();
+    parser.reset();
+  }
+};
 
 const handleError = (error) => {
   ElMessage.error(error);

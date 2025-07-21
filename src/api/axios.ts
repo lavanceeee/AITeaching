@@ -789,9 +789,20 @@ export const uploadFile2AI = async (
 };
 
 //获取文档的outline
-export const get_docsoutline = async ()=> {
- const token = localStorage.getItem("token");
- 
- 
-}
+export const get_docsoutline = async (courseId: string)=> {
+  const token = localStorage.getItem("token");
+  
+  const body = new URLSearchParams();
+  body.append('CourseId', courseId);
+
+ return fetch (`${BASE_URL}/ai/common/generate-course-outline`,{
+  method: "POST",
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'Accept': 'text/event-stream',
+    'Authorization': `Bearer ${token}`
+  },
+  body: body
+ });
+};
 
