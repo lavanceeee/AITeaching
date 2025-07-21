@@ -739,7 +739,7 @@ export const uploadFile2AI = async (
         }
 
         try {
-          const message = event.data;
+          const message = JSON.parse(event.data);
           
           if (message.taskId !== taskId) return;
 
