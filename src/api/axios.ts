@@ -739,7 +739,7 @@ export const uploadFile2AI = async (
         }
 
         try {
-          const message = JSON.parse(event.data);
+          const message = event.data;
           
           if (message.taskId !== taskId) return;
 
@@ -794,4 +794,11 @@ export const uploadFile2AI = async (
     throw error;
   }
 };
+
+//获取文档的outline
+export const get_docsoutline = async ()=> {
+ const token = localStorage.getItem("token");
+ 
+ 
+}
 
