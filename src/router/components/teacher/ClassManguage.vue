@@ -58,9 +58,9 @@
                       </div>
                       <div class="code-container">
                         <el-tooltip :content="clazz.id" placement="top" :show-after="300" :hide-after="0">
-                          <div class="code-value-wrapper">
+                          <!-- <div class="code-value-wrapper">
                             <span class="code-value">{{ truncateCode(clazz.id) }}</span>
-                          </div>
+                          </div> -->
                         </el-tooltip>
                         <el-button 
                           size="small" 

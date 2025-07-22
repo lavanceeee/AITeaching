@@ -22,6 +22,11 @@ import Students from '../components/teacherCom/classPage/students.vue'
 import Homework from '../components/teacherCom/classPage/homework.vue'
 import Information from '../components/teacherCom/classPage/information.vue'
 import CourseDetails from '../components/teacherCom/courseDetails.vue'
+import MainPageAdmin from '../views/MainPageAdmin.vue';
+import AccountManage from './components/admain/accountManage.vue';
+import ResourceManage from './components/admain/resourceManguage.vue';
+import Data from './components/admain/data.vue';
+
 
 const routes: RouteRecordRaw[] = [
     {path: '/', redirect: '/login'},
@@ -117,6 +122,29 @@ const routes: RouteRecordRaw[] = [
                 path: 'setting',
                 name: 'TeacherSetting',
                 component: Setting
+            }
+        ]
+    },
+    {
+        path: '/admain',
+        name: 'Admain',
+        component: MainPageAdmin,
+        redirect: '/admain/dashboard',
+        children: [
+            {
+                path: 'dashboard',
+                name: 'Admin_Dashboard',
+                component: Data
+            },
+            {
+                path: 'accounts',
+                name: 'Admin_Accounts',
+                component: AccountManage
+            },
+            {
+                path: 'resources',
+                name: 'Admin_Resources',
+                component: ResourceManage
             }
         ]
     }

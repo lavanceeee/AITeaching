@@ -390,7 +390,7 @@ const processOutlineStream = async (stream) => {
       }
       // 将内容追加到最后一个节点
       const lastChapter = courseOutline.value[courseOutline.value.length - 1];
-      lastChapter.content += cleanText(data) + '\n';
+      lastChapter.content += cleanText(data);
     }
   };
 

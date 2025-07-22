@@ -1,0 +1,46 @@
+{
+  "keyMetrics": {
+    "totalUsers": 12890,
+    "totalTeachers": 1356,
+    "totalStudents": 11534,
+    "totalResources": 25432
+  },
+  "activityStats": {
+    "daily": {
+      "teacherUsage": 85,
+      "studentUsage": 78
+    },
+    "weekly": {
+      "teacherUsage": 82,
+      "studentUsage": 75
+    }
+  },
+  "teachingEfficiency": {
+    "index": 92.5,
+    "prepTime": 3.2,
+    "correctionTime": 1.5,
+    "lowPassRateSubjects": [
+      { "name": "高等数学", "passRate": 58 },
+      { "name": "线性代数", "passRate": 62 }
+    ]
+  },
+  "usageTrends": {
+    "dates": ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
+    "teacherData": [120, 132, 101, 134, 90, 230, 210],
+    "studentData": [820, 932, 901, 934, 1290, 1330, 1320]
+  },
+  "activeModules": [
+    { "value": 1048, "name": "AI智能问答" },
+    { "value": 735, "name": "课程大纲生成" },
+    { "value": 580, "name": "在线练习" },
+    { "value": 484, "name": "班级管理" },
+    { "value": 300, "name": "资源上传" }
+  ],
+  "frequentErrors": [
+    { "name": "指针与内存地址", "value": 198 },
+    { "name": "递归算法", "value": 175 },
+    { "name": "时间复杂度计算", "value": 154 },
+    { "name": "TCP/IP协议", "value": 123 },
+    { "name": "数据库索引", "value": 98 }
+  ]
+} 
