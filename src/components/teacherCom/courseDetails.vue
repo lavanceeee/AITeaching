@@ -75,9 +75,16 @@
                   </div>
                   
                   <!-- 大纲内容展示 -->
-                  <div v-else-if="courseOutline" class="generated-outline">
-                    <pre>{{ courseOutline }}</pre>
-                  </div>
+                  <el-timeline v-else-if="courseOutline && courseOutline.length > 0" style="margin-top: 20px;">
+                    <el-timeline-item 
+                      v-for="(chapter, index) in courseOutline" 
+                      :key="index"
+                      :timestamp="chapter.title" 
+                      placement="top"
+                    >
+                      <div class="timeline-content">{{ chapter.content }}</div>
+                    </el-timeline-item>
+                  </el-timeline>
                   
                   <!-- 无大纲时的提示 -->
                   <el-empty 
@@ -310,7 +317,7 @@ const associatedClassesLoading = ref(false);
 const generatingOutline = ref(false);
 const generationProgress = ref(0);
 const generationMessage = ref('');
-const courseOutline = ref(''); // 1. 简化数据结构：修改为字符串
+const courseOutline = ref([]); // 恢复为数组
 let wsConnection = null;
 let loadingInstance = null;
 
@@ -356,16 +363,35 @@ const handleResult = async (message) => {
 }
 
 const processOutlineStream = async (stream) => {
-  courseOutline.value = ''; // 重置为空字符串
+  courseOutline.value = []; // 重置为空数组
+
+  const cleanText = (text) => {
+    // 移除Markdown的**加粗标记，并将- 列表标记替换为更美观的·
+    return text.replace(/\*\*/g, '').replace(/^- /g, '· ');
+  };
 
   const onParse = (event) => {
     const data = event.data;
-    if (data === undefined || data === '[DONE]') {
+    if (data === undefined || data.trim() === '' || data === '[DONE]') {
       return;
     }
-    // 2. 简化处理逻辑：直接追加数据并打印日志
-    console.log("SSE 收到数据:", data); 
-    courseOutline.value += data + '\n'; 
+
+    const line = data.trim();
+
+    // 将#、##、###开头的行作为新的时间线节点的标题
+    if (line.startsWith('#')) {
+      let title = line.substring(line.indexOf(' ')).trim();
+      courseOutline.value.push({ title: cleanText(title), content: '' });
+    } else {
+      // 其他行作为上一个节点的内容
+      if (courseOutline.value.length === 0) {
+        // 如果还没有任何节点，创建一个介绍节点
+        courseOutline.value.push({ title: '课程介绍', content: '' });
+      }
+      // 将内容追加到最后一个节点
+      const lastChapter = courseOutline.value[courseOutline.value.length - 1];
+      lastChapter.content += cleanText(data) + '\n';
+    }
   };
 
   const parser = createParser({
@@ -820,6 +846,15 @@ const handleConfirmAddClasses = async (selectedClassIds) => {
 
 .class-actions {
   flex-shrink: 0;
+}
+
+.timeline-content {
+  white-space: pre-wrap; /* 保留换行和空格 */
+  word-wrap: break-word; /* 自动换行 */
+  color: #606266;
+  font-size: 14px;
+  line-height: 1.7;
+  padding-top: 5px;
 }
 
 .outline-uploader {
